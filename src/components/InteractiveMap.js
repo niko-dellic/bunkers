@@ -57,7 +57,7 @@ export default function InteractiveMap({}) {
       >
         <Map
           mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
-          mapStyle="mapbox://styles/niko-dellic/clpimqkw300c201pg7cl4ej5q"
+          mapStyle="mapbox://styles/mapandie/cltkpz8q5025f01p0blqrfq43"
         />
       </DeckGL>
     </div>
