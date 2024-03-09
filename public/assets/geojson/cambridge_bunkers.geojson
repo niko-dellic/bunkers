@@ -1,1 +1,50 @@
-{"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"name": "Cambridge Bunker Alpha", "description": "A small bunker located in central Cambridge with basic amenities.", "bartering": "open to bartering"}, "geometry": {"type": "Point", "coordinates": [42.3736, -71.1097]}}, {"type": "Feature", "properties": {"name": "Riverside Bunker", "description": "This bunker has a strategic location near the Charles River.", "bartering": "no bartering"}, "geometry": {"type": "Point", "coordinates": [42.3656, -71.1036]}}, {"type": "Feature", "properties": {"name": "MIT Underground Facility", "description": "A technologically advanced bunker located near the MIT campus.", "bartering": "unknown"}, "geometry": {"type": "Point", "coordinates": [42.3601, -71.0942]}}, {"type": "Feature", "properties": {"name": "Harvard Hideout", "description": "A well-equipped bunker in the vicinity of Harvard University.", "bartering": "open to bartering"}, "geometry": {"type": "Point", "coordinates": [42.377, -71.1167]}}, {"type": "Feature", "properties": {"name": "Porter's Shelter", "description": "A bunker known for its sturdy construction in the Porter Square area.", "bartering": "no bartering"}, "geometry": {"type": "Point", "coordinates": [42.3884, -71.1191]}}]}
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Cambridge Bunker Alpha",
+        "description": "A small bunker located in central Cambridge with basic amenities.",
+        "bartering": "open to bartering"
+      },
+      "geometry": { "type": "Point", "coordinates": [-71.1097, 42.3736] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Riverside Bunker",
+        "description": "This bunker has a strategic location near the Charles River.",
+        "bartering": "no bartering"
+      },
+      "geometry": { "type": "Point", "coordinates": [-71.1036, 42.3656] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "MIT Underground Facility",
+        "description": "A technologically advanced bunker located near the MIT campus.",
+        "bartering": "unknown"
+      },
+      "geometry": { "type": "Point", "coordinates": [-71.0942, 42.3601] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Harvard Hideout",
+        "description": "A well-equipped bunker in the vicinity of Harvard University.",
+        "bartering": "open to bartering"
+      },
+      "geometry": { "type": "Point", "coordinates": [-71.1167, 42.377] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Porter's Shelter",
+        "description": "A bunker known for its sturdy construction in the Porter Square area.",
+        "bartering": "no bartering"
+      },
+      "geometry": { "type": "Point", "coordinates": [-71.1191, 42.3884] }
+    }
+  ]
+}
