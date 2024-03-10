@@ -10,6 +10,10 @@ import { MaskExtension } from "@deck.gl/extensions";
 import { buffer } from "@turf/turf";
 import { BitmapLayer } from "@deck.gl/layers";
 import { bbox } from "@turf/turf";
+import { TripsLayer } from "@deck.gl/geo-layers";
+import { ArcLayer } from "@deck.gl/layers";
+
+import * as d3 from "d3-delaunay";
 
 import "mapbox-gl/dist/mapbox-gl.css";
 
@@ -30,27 +34,93 @@ const postProcessEffect = new PostProcessEffect(dotScreen, {});
 
 export default function InteractiveMap({}) {
   const [cursor, setCursor] = useState(null);
-  const [bounds, setBounds] = useState([]);
   const [glb, setGlb] = useState(null);
+  const [bunkerCentroids, setBunkerCentroids] = useState([]);
   const [bunkers, setBunkers] = useState([]);
+  const [bunkerLayers, setBunkerLayers] = useState(null);
+  const [network, setNetwork] = useState([]);
 
-  // console.log(bunkers);
-
-  // prevent right click on page load
   useEffect(() => {
     document.addEventListener("contextmenu", (event) => event.preventDefault());
 
-    fetch("./assets/geojson/cambridge_bunkers.geojson")
+    fetch("./assets/geojson/boston_bunkers.geojson")
       .then((res) => res.json())
       .then((data) => {
-        // crewate buffer and bbox for each point
+        setBunkerCentroids(data);
+        // Create buffer and bbox for each point
         const buff = data.features.map((feature) => {
-          return buffer(feature, 0.125, { units: "miles" });
+          return buffer(feature, 0.0625, { units: "miles" });
         });
         const b = buff.map((b) => bbox(b));
         setBunkers(b);
+
+        // Create a unique id for each feature
+        data.features = data.features.map((feature, index) => {
+          feature.id = index;
+          return feature;
+        });
+
+        // Extract points for Delaunay triangulation
+        const points = data.features.map((f) => f.geometry.coordinates);
+        const delaunay = d3.Delaunay.from(
+          points,
+          (d) => d[0],
+          (d) => d[1]
+        );
+
+        // Convert Delaunay edges to GeoJSON LineString features
+        const edgesGeoJSON = {
+          type: "FeatureCollection",
+          features: [],
+        };
+
+        // Loop through each triangle in the Delaunay triangulation
+        for (let i = 0; i < delaunay.triangles.length; i += 3) {
+          for (let j = 0; j < 3; j++) {
+            const startIndex = delaunay.triangles[i + j];
+            const endIndex = delaunay.triangles[i + ((j + 1) % 3)];
+
+            // Avoid duplicate edges
+            if (
+              !edgesGeoJSON.features.some((feature) => {
+                const coords = feature.geometry.coordinates;
+                return (
+                  (coords[0] === points[startIndex] &&
+                    coords[1] === points[endIndex]) ||
+                  (coords[0] === points[endIndex] &&
+                    coords[1] === points[startIndex])
+                );
+              })
+            ) {
+              edgesGeoJSON.features.push({
+                type: "Feature",
+                properties: {},
+                geometry: {
+                  type: "LineString",
+                  coordinates: [points[startIndex], points[endIndex]],
+                },
+              });
+            }
+          }
+        }
+
+        // Now you can use `edgesGeoJSON` as the data source for a map layer
+        setNetwork(edgesGeoJSON); // Assuming you have a state `network` to hold this data
       });
   }, []);
+  useEffect(() => {
+    const layers = bunkers.map((b, i) => {
+      return new BitmapLayer({
+        id: `bunker-layer-${i}`,
+        bounds: b,
+        image: "./assets/img/bunker.png",
+        extensions: [new MaskExtension()],
+        maskId: "geofence",
+        maskByInstance: true,
+      });
+    });
+    setBunkerLayers(layers);
+  }, [bunkers]);
 
   // layers array
   const layers = [
@@ -75,26 +145,59 @@ export default function InteractiveMap({}) {
     }),
     new GeoJsonLayer({
       id: "geojson-layer",
-      data: "./assets/geojson/cambridge_bunkers.geojson",
-      stroked: false,
-      filled: false,
+      data: bunkerCentroids,
+      stroked: true,
+      filled: true,
       pointType: "circle",
-      getFillColor: (d) => {
-        return [255, 0, 0];
-      },
-      getPointRadius: 250,
+      getFillColor: [255, 255, 255],
+      getPointRadius: 10,
+      // set the max pixels to 3
+      pointRadiusMaxPixels: 10,
       extensions: [new MaskExtension()],
       maskId: "geofence",
-      maskByInstance: false,
-      onDataLoad: (data) => {
-        // crewate buffer and bbox for each point
-        const buff = data.features.map((feature) => {
-          return buffer(feature, 0.125, { units: "miles" });
-        });
-        const b = buff.map((b) => bbox(b));
-        setBounds(b);
-      },
+      maskInverted: true,
     }),
+    // add networkgggggfghfhhfhghgfhg
+    new GeoJsonLayer({
+      id: "network-layer",
+      data: network,
+      stroked: true,
+      lineWidthUnits: "pixels",
+      getLineColor: [255, 255, 255, 100],
+      getLineWidth: 3,
+      extensions: [new MaskExtension()],
+      maskId: "geofence",
+      maskInverted: true,
+    }),
+
+    new ArcLayer({
+      id: "arc-layer",
+      data: network.features,
+      getSourcePosition: (d) => {
+        return d.geometry.coordinates[0];
+      },
+      getTargetPosition: (d) => d.geometry.coordinates[1],
+      getSourceColor: [253, 128, 93],
+      getTargetColor: [253, 128, 93],
+      getWidth: 2,
+      getHeight: 0.5,
+      extensions: [new MaskExtension()],
+      maskId: "geofence",
+    }),
+    // new TripsLayer({
+    //   id: "trips-layer",
+    //   data: network,
+    //   getPath: (d) => d.waypoints.map((p) => p.coordinates),
+    //   // deduct start timestamp from each data point to avoid overflow
+    //   getTimestamps: (d) => d.waypoints.map((p) => p.timestamp - 1554772579000),
+    //   getColor: [253, 128, 93],
+    //   opacity: 0.8,
+    //   widthMinPixels: 5,
+    //   rounded: true,
+    //   fadeTrail: true,
+    //   trailLength: 200,
+    //   currentTime: 100,
+    // }),
 
     // new ScenegraphLayer({
     //   id: "scenegraph-layer",
@@ -125,19 +228,7 @@ export default function InteractiveMap({}) {
     //   // maskId: "geofence",
     //   // maskByInstance: false,
     // }),
-    bunkers.length > 0 &&
-      bunkers.map(
-        (b) =>
-          new BitmapLayer({
-            id: "bitmap-layer",
-            // bounds: [-180, 90, -180, -90],
-            bounds: b,
-            image: "./assets/img/bunker.png",
-            extensions: [new MaskExtension()],
-            maskId: "geofence",
-            maskByInstance: false,
-          })
-      ),
+    bunkerLayers && bunkerLayers,
   ];
 
   return (
