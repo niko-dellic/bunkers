@@ -32,10 +32,24 @@ export default function InteractiveMap({}) {
   const [cursor, setCursor] = useState(null);
   const [bounds, setBounds] = useState([]);
   const [glb, setGlb] = useState(null);
+  const [bunkers, setBunkers] = useState([]);
+
+  // console.log(bunkers);
 
   // prevent right click on page load
   useEffect(() => {
     document.addEventListener("contextmenu", (event) => event.preventDefault());
+
+    fetch("./assets/geojson/cambridge_bunkers.geojson")
+      .then((res) => res.json())
+      .then((data) => {
+        // crewate buffer and bbox for each point
+        const buff = data.features.map((feature) => {
+          return buffer(feature, 0.125, { units: "miles" });
+        });
+        const b = buff.map((b) => bbox(b));
+        setBunkers(b);
+      });
   }, []);
 
   // layers array
@@ -111,18 +125,19 @@ export default function InteractiveMap({}) {
     //   // maskId: "geofence",
     //   // maskByInstance: false,
     // }),
-    bounds.map(
-      (b) =>
-        new BitmapLayer({
-          id: "bitmap-layer",
-          // bounds: [-180, 90, -180, -90],
-          bounds: b,
-          image: "./assets/img/bunker.png",
-          extensions: [new MaskExtension()],
-          maskId: "geofence",
-          maskByInstance: false,
-        })
-    ),
+    bunkers.length > 0 &&
+      bunkers.map(
+        (b) =>
+          new BitmapLayer({
+            id: "bitmap-layer",
+            // bounds: [-180, 90, -180, -90],
+            bounds: b,
+            image: "./assets/img/bunker.png",
+            extensions: [new MaskExtension()],
+            maskId: "geofence",
+            maskByInstance: false,
+          })
+      ),
   ];
 
   return (
@@ -148,7 +163,9 @@ export default function InteractiveMap({}) {
 
           // create a point buffer
           if (event.coordinate === undefined) return;
-          const d = buffer(
+          let d;
+
+          d = buffer(
             {
               type: "Feature",
               geometry: {
@@ -160,11 +177,7 @@ export default function InteractiveMap({}) {
             { units: "miles" }
           );
 
-          // const b = bbox(d);
-
           setCursor(d);
-          // console.log(b);
-          // setBounds(b);
         }}
       >
         {/* <Map
