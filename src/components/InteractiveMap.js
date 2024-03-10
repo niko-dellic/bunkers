@@ -7,6 +7,9 @@ import { GeoJsonLayer, ScenegraphLayer } from "deck.gl";
 import { PostProcessEffect } from "deck.gl";
 import { dotScreen } from "@luma.gl/shadertools";
 import { MaskExtension } from "@deck.gl/extensions";
+import { buffer } from "@turf/turf";
+import { BitmapLayer } from "@deck.gl/layers";
+import { bbox } from "@turf/turf";
 
 import "mapbox-gl/dist/mapbox-gl.css";
 
@@ -16,9 +19,9 @@ const INITIAL_VIEW_STATE = {
   // boston
   longitude: -71.10411036688859,
   latitude: 42.37510184675266,
-  zoom: 12.5,
-  pitch: 0,
-  bearing: 0,
+  zoom: 14.5,
+  pitch: 50,
+  bearing: 30,
   minPitch: 0,
   maxPitch: 180,
 };
@@ -26,6 +29,10 @@ const INITIAL_VIEW_STATE = {
 const postProcessEffect = new PostProcessEffect(dotScreen, {});
 
 export default function InteractiveMap({}) {
+  const [cursor, setCursor] = useState(null);
+  const [bounds, setBounds] = useState([]);
+  const [glb, setGlb] = useState(null);
+
   // prevent right click on page load
   useEffect(() => {
     document.addEventListener("contextmenu", (event) => event.preventDefault());
@@ -34,43 +41,88 @@ export default function InteractiveMap({}) {
   // layers array
   const layers = [
     new GeoJsonLayer({
+      id: "geofence",
+      data: cursor,
+      pointType: "circle",
+      getFillColor: (d) => [255, 0, 0],
+      operation: "mask",
+      getPointRadius: 1000,
+    }),
+    new GeoJsonLayer({
+      id: "geofence-display",
+      data: cursor,
+      pointType: "circle",
+      stroked: true,
+      filled: false,
+      getPointRadius: 1000,
+      getFillColor: [255, 0, 0, 50],
+      getLineColor: [255, 0, 0, 255],
+      getLineWidth: 10,
+    }),
+    new GeoJsonLayer({
       id: "geojson-layer",
       data: "./assets/geojson/cambridge_bunkers.geojson",
-      pickable: true,
       stroked: false,
-      filled: true,
+      filled: false,
       pointType: "circle",
       getFillColor: (d) => {
         return [255, 0, 0];
       },
-      pointRadiusMinPixels: 5,
-    }),
-
-    new ScenegraphLayer({
-      id: "scenegraph-layer",
-      data: fetch("./assets/geojson/cambridge_bunkers.geojson")
-        .then((res) => res.json())
-        .then((data) => {
-          const d = data.features;
-          d.map((feature) => {
-            feature.coordinates = feature.geometry.coordinates;
-          });
-
-          return data.features;
-        }),
-      scenegraph: "./assets/glb/wind_turbine.glb",
-      getPosition: (d) => {
-        return d.coordinates;
-      },
-      pickable: true,
-      //rotate random
-      getOrientation: (d) => [0, Math.random() * 360, 90],
-      sizeScale: 0.05,
-      _lighting: "pbr",
-      _animations: {
-        "*": { speed: 5 },
+      getPointRadius: 250,
+      extensions: [new MaskExtension()],
+      maskId: "geofence",
+      maskByInstance: false,
+      onDataLoad: (data) => {
+        // crewate buffer and bbox for each point
+        const buff = data.features.map((feature) => {
+          return buffer(feature, 0.125, { units: "miles" });
+        });
+        const b = buff.map((b) => bbox(b));
+        setBounds(b);
       },
     }),
+
+    // new ScenegraphLayer({
+    //   id: "scenegraph-layer",
+    //   data:
+    //     glb ||
+    //     fetch("./assets/geojson/cambridge_bunkers.geojson")
+    //       .then((res) => res.json())
+    //       .then((data) => {
+    //         const d = data.features;
+    //         d.map((feature) => {
+    //           feature.coordinates = feature.geometry.coordinates;
+    //         });
+    //         setGlb(d);
+    //         return d;
+    //       }),
+    //   scenegraph: "./assets/glb/wind_turbine.glb",
+    //   getPosition: (d) => {
+    //     return d.coordinates;
+    //   },
+    //   pickable: true,
+    //   getOrientation: (d) => [0, Math.random() * 360, 90],
+    //   sizeScale: 0.05,
+    //   _lighting: "pbr",
+    //   _animations: {
+    //     "*": { speed: 1 },
+    //   },
+    //   // extensions: [new MaskExtension()],
+    //   // maskId: "geofence",
+    //   // maskByInstance: false,
+    // }),
+    bounds.map(
+      (b) =>
+        new BitmapLayer({
+          id: "bitmap-layer",
+          // bounds: [-180, 90, -180, -90],
+          bounds: b,
+          image: "./assets/img/bunker.png",
+          extensions: [new MaskExtension()],
+          maskId: "geofence",
+          maskByInstance: false,
+        })
+    ),
   ];
 
   return (
@@ -82,11 +134,43 @@ export default function InteractiveMap({}) {
         autoTooltip={true}
         autoResize={true}
         effects={[postProcessEffect]}
+        //on mouse move, set cursor to the event
+        onHover={(event) => {
+          // const d = [
+          //   {
+          //     type: "Feature",
+          //     geometry: {
+          //       type: "Point",
+          //       coordinates: event.coordinate,
+          //     },
+          //   },
+          // ];
+
+          // create a point buffer
+          if (event.coordinate === undefined) return;
+          const d = buffer(
+            {
+              type: "Feature",
+              geometry: {
+                type: "Point",
+                coordinates: event.coordinate,
+              },
+            },
+            0.5,
+            { units: "miles" }
+          );
+
+          // const b = bbox(d);
+
+          setCursor(d);
+          // console.log(b);
+          // setBounds(b);
+        }}
       >
-        <Map
+        {/* <Map
           mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
           mapStyle="mapbox://styles/mapbox/dark-v11"
-        />
+        /> */}
       </DeckGL>
     </div>
   );
