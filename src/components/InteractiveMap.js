@@ -10,12 +10,11 @@ import { MaskExtension } from "@deck.gl/extensions";
 import { buffer } from "@turf/turf";
 import { BitmapLayer } from "@deck.gl/layers";
 import { bbox } from "@turf/turf";
-import { TripsLayer } from "@deck.gl/geo-layers";
 import { ArcLayer } from "@deck.gl/layers";
-
 import * as d3 from "d3-delaunay";
-
 import "mapbox-gl/dist/mapbox-gl.css";
+import NewBunker from "./NewBunker";
+import DrawBunker from "./DrawBunker";
 
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -24,13 +23,22 @@ const INITIAL_VIEW_STATE = {
   longitude: -71.10411036688859,
   latitude: 42.37510184675266,
   zoom: 14.5,
-  pitch: 50,
-  bearing: 30,
+  // pitch: 50,
+  // bearing: 30,
   minPitch: 0,
   maxPitch: 180,
 };
 
-const postProcessEffect = new PostProcessEffect(dotScreen, {});
+const postProcessEffect = new PostProcessEffect(dotScreen, {
+  size: 3,
+});
+
+const canvasDimensions = {
+  x: window.innerWidth,
+  y: window.innerHeight,
+};
+
+const maskRadius = 150;
 
 export default function InteractiveMap({}) {
   const [cursor, setCursor] = useState(null);
@@ -39,10 +47,16 @@ export default function InteractiveMap({}) {
   const [bunkers, setBunkers] = useState([]);
   const [bunkerLayers, setBunkerLayers] = useState(null);
   const [network, setNetwork] = useState([]);
+  const [drawSequence, setDrawSequence] = useState(false);
+  const [newDrawingPts, setNewDrawingPts] = useState([]);
+  const [newDrawingScreenPts, setNewDrawingScreenPts] = useState([]);
+  const [showDrawingCanvas, setShowDrawingCanvas] = useState(false);
 
   useEffect(() => {
     document.addEventListener("contextmenu", (event) => event.preventDefault());
+  }, []);
 
+  useEffect(() => {
     fetch("./assets/geojson/boston_bunkers.geojson")
       .then((res) => res.json())
       .then((data) => {
@@ -124,25 +138,27 @@ export default function InteractiveMap({}) {
 
   // layers array
   const layers = [
-    new GeoJsonLayer({
-      id: "geofence",
-      data: cursor,
-      pointType: "circle",
-      getFillColor: (d) => [255, 0, 0],
-      operation: "mask",
-      getPointRadius: 1000,
-    }),
-    new GeoJsonLayer({
-      id: "geofence-display",
-      data: cursor,
-      pointType: "circle",
-      stroked: true,
-      filled: false,
-      getPointRadius: 1000,
-      getFillColor: [255, 0, 0, 50],
-      getLineColor: [255, 0, 0, 255],
-      getLineWidth: 10,
-    }),
+    !drawSequence &&
+      new GeoJsonLayer({
+        id: "geofence",
+        data: cursor,
+        pointType: "circle",
+        getFillColor: (d) => [255, 0, 0],
+        operation: "mask",
+        getPointRadius: maskRadius,
+      }),
+    !drawSequence &&
+      new GeoJsonLayer({
+        id: "geofence-display",
+        data: cursor,
+        pointType: "circle",
+        stroked: true,
+        filled: false,
+        getPointRadius: maskRadius,
+        getFillColor: [255, 0, 0, 50],
+        getLineColor: [255, 0, 0, 255],
+        getLineWidth: 10,
+      }),
     new GeoJsonLayer({
       id: "geojson-layer",
       data: bunkerCentroids,
@@ -151,107 +167,120 @@ export default function InteractiveMap({}) {
       pointType: "circle",
       getFillColor: [255, 255, 255],
       getPointRadius: 10,
-      // set the max pixels to 3
       pointRadiusMaxPixels: 10,
       extensions: [new MaskExtension()],
       maskId: "geofence",
       maskInverted: true,
     }),
-    // add networkgggggfghfhhfhghgfhg
-    new GeoJsonLayer({
-      id: "network-layer",
-      data: network,
-      stroked: true,
-      lineWidthUnits: "pixels",
-      getLineColor: [255, 255, 255, 100],
-      getLineWidth: 3,
-      extensions: [new MaskExtension()],
-      maskId: "geofence",
-      maskInverted: true,
-    }),
-
-    new ArcLayer({
-      id: "arc-layer",
-      data: network.features,
-      getSourcePosition: (d) => {
-        return d.geometry.coordinates[0];
-      },
-      getTargetPosition: (d) => d.geometry.coordinates[1],
-      getSourceColor: [253, 128, 93],
-      getTargetColor: [253, 128, 93],
-      getWidth: 2,
-      getHeight: 0.5,
-      extensions: [new MaskExtension()],
-      maskId: "geofence",
-    }),
-    // new TripsLayer({
-    //   id: "trips-layer",
-    //   data: network,
-    //   getPath: (d) => d.waypoints.map((p) => p.coordinates),
-    //   // deduct start timestamp from each data point to avoid overflow
-    //   getTimestamps: (d) => d.waypoints.map((p) => p.timestamp - 1554772579000),
-    //   getColor: [253, 128, 93],
-    //   opacity: 0.8,
-    //   widthMinPixels: 5,
-    //   rounded: true,
-    //   fadeTrail: true,
-    //   trailLength: 200,
-    //   currentTime: 100,
-    // }),
-
-    // new ScenegraphLayer({
-    //   id: "scenegraph-layer",
-    //   data:
-    //     glb ||
-    //     fetch("./assets/geojson/cambridge_bunkers.geojson")
-    //       .then((res) => res.json())
-    //       .then((data) => {
-    //         const d = data.features;
-    //         d.map((feature) => {
-    //           feature.coordinates = feature.geometry.coordinates;
-    //         });
-    //         setGlb(d);
-    //         return d;
-    //       }),
-    //   scenegraph: "./assets/glb/wind_turbine.glb",
-    //   getPosition: (d) => {
-    //     return d.coordinates;
-    //   },
-    //   pickable: true,
-    //   getOrientation: (d) => [0, Math.random() * 360, 90],
-    //   sizeScale: 0.05,
-    //   _lighting: "pbr",
-    //   _animations: {
-    //     "*": { speed: 1 },
-    //   },
-    //   // extensions: [new MaskExtension()],
-    //   // maskId: "geofence",
-    //   // maskByInstance: false,
-    // }),
-    bunkerLayers && bunkerLayers,
+    !drawSequence &&
+      new GeoJsonLayer({
+        id: "network-layer",
+        data: network,
+        stroked: true,
+        lineWidthUnits: "pixels",
+        getLineColor: [255, 255, 255, 100],
+        getLineWidth: 3,
+        extensions: [new MaskExtension()],
+        maskId: "geofence",
+        maskInverted: true,
+      }),
+    !drawSequence &&
+      new ArcLayer({
+        id: "arc-layer",
+        data: network.features,
+        getSourcePosition: (d) => {
+          return d.geometry.coordinates[0];
+        },
+        getTargetPosition: (d) => d.geometry.coordinates[1],
+        getSourceColor: [253, 128, 93],
+        getTargetColor: [253, 128, 93],
+        getWidth: 2,
+        getHeight: -0.5,
+        extensions: [new MaskExtension()],
+        maskId: "geofence",
+      }),
+    drawSequence &&
+      new GeoJsonLayer({
+        id: "new-bunker-layer",
+        data: [
+          {
+            type: "Feature",
+            geometry: {
+              type: newDrawingPts.length > 1 ? "Polygon" : "Point",
+              coordinates:
+                newDrawingPts.length > 1 ? [newDrawingPts] : newDrawingPts[0],
+            },
+          },
+        ],
+        stroked: true,
+        filled: true,
+        lineWidthUnits: "pixels",
+        getLineColor: (d) => {
+          return [255, 0, 0, 255];
+        },
+        pointType: "circle",
+        getFillColor: [255, 0, 0, 100],
+        getPointRadius: 10,
+        getLineWidth: 5,
+      }),
+    // bunkerLayers && bunkerLayers,
   ];
+
+  const handleDrawing = (event) => {
+    if (drawSequence) {
+      setNewDrawingPts([...newDrawingPts, event.coordinate]);
+
+      const screenPts = newDrawingScreenPts;
+      screenPts.push([event.x, event.y]);
+      console.log(screenPts);
+
+      // Calculate the min and max for x and y from screenPts
+      const minX = Math.min(...screenPts.map((pt) => pt[0]));
+      const maxX = Math.max(...screenPts.map((pt) => pt[0]));
+      const minY = Math.min(...screenPts.map((pt) => pt[1]));
+      const maxY = Math.max(...screenPts.map((pt) => pt[1]));
+
+      // Remap the points to the canvas dimensions
+      const remappedPts = screenPts.map((pt) => {
+        const remappedX = ((pt[0] - minX) / (maxX - minX)) * canvasDimensions.x;
+        const remappedY = ((pt[1] - minY) / (maxY - minY)) * canvasDimensions.y;
+        return [remappedX, remappedY];
+      });
+
+      setNewDrawingScreenPts(remappedPts);
+    }
+  };
 
   return (
     <div>
+      <NewBunker
+        drawSequence={drawSequence}
+        setDrawSequence={setDrawSequence}
+        setNewDrawingPts={setNewDrawingPts}
+        newDrawingPts={newDrawingPts}
+        newDrawingScreenPts={newDrawingScreenPts}
+        setNewDrawingScreenPts={setNewDrawingScreenPts}
+        showDrawingCanvas={showDrawingCanvas}
+        setShowDrawingCanvas={setShowDrawingCanvas}
+        canvasDimensions={canvasDimensions}
+      />
+      {showDrawingCanvas && (
+        <DrawBunker
+          drawSequence={drawSequence}
+          newDrawingScreenPts={newDrawingScreenPts}
+          canvasDimensions={canvasDimensions}
+        />
+      )}
       <DeckGL
+        getCursor={() => (drawSequence ? "crosshair" : "grab")}
         initialViewState={INITIAL_VIEW_STATE}
-        controller={true}
+        controller={!drawSequence && true}
         layers={layers}
         autoTooltip={true}
         autoResize={true}
         effects={[postProcessEffect]}
         //on mouse move, set cursor to the event
         onHover={(event) => {
-          // const d = [
-          //   {
-          //     type: "Feature",
-          //     geometry: {
-          //       type: "Point",
-          //       coordinates: event.coordinate,
-          //     },
-          //   },
-          // ];
-
           // create a point buffer
           if (event.coordinate === undefined) return;
           let d;
@@ -264,17 +293,27 @@ export default function InteractiveMap({}) {
                 coordinates: event.coordinate,
               },
             },
-            0.5,
-            { units: "miles" }
+            maskRadius,
+            { units: "meters" }
           );
 
           setCursor(d);
         }}
+        onClick={(event) => {
+          if (drawSequence) {
+            handleDrawing(event);
+          }
+        }}
+        onDrag={(event) => {
+          if (drawSequence) {
+            handleDrawing(event);
+          }
+        }}
       >
-        {/* <Map
+        <Map
           mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
           mapStyle="mapbox://styles/mapbox/dark-v11"
-        /> */}
+        />
       </DeckGL>
     </div>
   );

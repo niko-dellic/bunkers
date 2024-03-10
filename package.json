@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@p5-wrapper/react": "^4.3.4",
     "@turf/turf": "^6.5.0",
     "d3-delaunay": "^6.0.4",
     "deck.gl": "^8.9.35",
