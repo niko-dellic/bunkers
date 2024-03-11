@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { ReactP5Wrapper } from "@p5-wrapper/react";
 
-function sketch(updateBounds) {
+function sketch(updateBounds, width, height) {
   return (p) => {
     let isDrawing = false;
     const interval = 12;
@@ -14,7 +14,7 @@ function sketch(updateBounds) {
     let maxY = -Infinity;
 
     p.setup = () => {
-      p.createCanvas(window.innerWidth, window.innerHeight);
+      p.createCanvas(width, height);
       p.background(255, 255, 255, 0); // Transparent background
     };
 
@@ -80,21 +80,23 @@ function sketch(updateBounds) {
 }
 export default function Canvas({
   showCanvas,
-  setShowCanvas,
-  canvasDrawingBounds,
   setCanvasDrawingBounds,
-  p5Instance,
   setP5Instance,
 }) {
+  const [isClient, setIsClient] = useState(false);
+
   const updateBounds = useRef((newBounds) =>
     setCanvasDrawingBounds(newBounds)
   ).current;
 
   useEffect(() => {
+    setIsClient(true); // Component has mounted, set the flag to true
+    const width = window.innerWidth;
+    const height = window.innerHeight;
     if (!sketchRef.current) {
       // Only create the sketch if it doesn't already exist and ensure p5 instance is accessible
       const wrappedSketch = (p) => {
-        const customSketch = sketch(updateBounds);
+        const customSketch = sketch(updateBounds, width, height);
         customSketch(p);
         setP5Instance(p); // Save the p5 instance for later use
       };
