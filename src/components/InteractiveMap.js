@@ -29,7 +29,7 @@ const INITIAL_VIEW_STATE = {
   // pitch: 50,
   // bearing: 30,
   minPitch: 0,
-  maxPitch: 180,
+  maxPitch: 179,
 };
 
 const postProcessEffect = new PostProcessEffect(dotScreen, {
@@ -61,7 +61,7 @@ function convertToBounds(bounds, map) {
     northLat: topRight[1],
   };
 
-  console.log(geoBounds);
+  return geoBounds;
 }
 
 export default function InteractiveMap({}) {
@@ -79,6 +79,7 @@ export default function InteractiveMap({}) {
     minY: -Infinity,
     maxY: Infinity,
   });
+  const [projectedBounds, setProjectedBounds] = useState(null);
   const [p5Instance, setP5Instance] = useState(null);
 
   useEffect(() => {
@@ -151,6 +152,7 @@ export default function InteractiveMap({}) {
         setNetwork(edgesGeoJSON); // Assuming you have a state `network` to hold this data
       });
   }, []);
+
   useEffect(() => {
     const layers = bunkers.map((b, i) => {
       return new BitmapLayer({
@@ -169,6 +171,7 @@ export default function InteractiveMap({}) {
     // Assuming bounds is your state variable with minX, maxX, minY, maxY
     if (canvasDrawingBounds.minX !== -Infinity) {
       const geoBounds = convertToBounds(canvasDrawingBounds, viewState);
+      setProjectedBounds(geoBounds);
       // Now you can use geoBounds for whatever you need
     }
   }, [canvasDrawingBounds]); // Depend on bounds state
@@ -232,7 +235,7 @@ export default function InteractiveMap({}) {
         getSourceColor: [255, 255, 255, 200],
         getTargetColor: [255, 255, 255, 200],
         getWidth: 2,
-        getHeight: -0.5,
+        getHeight: 0.5,
         extensions: [new MaskExtension()],
         maskId: "geofence",
       }),
@@ -241,57 +244,64 @@ export default function InteractiveMap({}) {
   ];
 
   return (
-    <div>
-      <UX
-        showCanvas={showCanvas}
-        setShowCanvas={setShowCanvas}
-        p5Instance={p5Instance}
-        setP5Instance={setP5Instance}
-      />
-      <Canvas
-        showCanvas={showCanvas}
-        setShowCanvas={setShowCanvas}
-        canvasDrawingBounds={canvasDrawingBounds}
-        setCanvasDrawingBounds={setCanvasDrawingBounds}
-        p5Instance={p5Instance}
-        setP5Instance={setP5Instance}
-      />
-      <DeckGL
-        initialViewState={INITIAL_VIEW_STATE}
-        onViewStateChange={(e) => setViewState(e.viewState)}
-        controller={true}
-        layers={layers}
-        autoTooltip={true}
-        autoResize={true}
-        effects={[postProcessEffect]}
-        //on mouse move, set cursor to the event
-        onHover={(event) => {
-          // create a point buffer
-          if (event.coordinate === undefined) return;
-          let d;
+    <>
+      <div className="border-effect">
+        <UX
+          showCanvas={showCanvas}
+          setShowCanvas={setShowCanvas}
+          p5Instance={p5Instance}
+          canvasDrawingBounds={canvasDrawingBounds}
+          projectedBounds={projectedBounds}
+        />
+      </div>
+      <div className="border-effect">
+        <div id="canvas-wrapper">
+          <Canvas
+            showCanvas={showCanvas}
+            setShowCanvas={setShowCanvas}
+            canvasDrawingBounds={canvasDrawingBounds}
+            setCanvasDrawingBounds={setCanvasDrawingBounds}
+            p5Instance={p5Instance}
+            setP5Instance={setP5Instance}
+          />
+          <DeckGL
+            initialViewState={INITIAL_VIEW_STATE}
+            onViewStateChange={(e) => setViewState(e.viewState)}
+            controller={{ inertia: 750 }}
+            layers={layers}
+            autoTooltip={true}
+            autoResize={true}
+            effects={[postProcessEffect]}
+            //on mouse move, set cursor to the event
+            onHover={(event) => {
+              // create a point buffer
+              if (event.coordinate === undefined) return;
+              let d;
 
-          d = buffer(
-            {
-              type: "Feature",
-              geometry: {
-                type: "Point",
-                coordinates: event.coordinate,
-              },
-            },
-            maskRadius,
-            { units: "meters" }
-          );
+              d = buffer(
+                {
+                  type: "Feature",
+                  geometry: {
+                    type: "Point",
+                    coordinates: event.coordinate,
+                  },
+                },
+                maskRadius,
+                { units: "meters" }
+              );
 
-          setCursor(d);
-        }}
-      >
-        {/* <Map
+              setCursor(d);
+            }}
+          >
+            {/* <Map
           mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
           // mercator projection
           projection="mercator"
           mapStyle="mapbox://styles/mapbox/dark-v11"
         /> */}
-      </DeckGL>
-    </div>
+          </DeckGL>
+        </div>
+      </div>
+    </>
   );
 }

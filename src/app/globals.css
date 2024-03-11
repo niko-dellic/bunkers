@@ -9,14 +9,33 @@
 html,
 body {
   max-width: 100vw;
-  overflow-x: hidden;
+}
+
+main {
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 30% 1fr;
+  border: 5px solid white;
+  border-bottom: 5px solid #808080;
+  border-right: 5px solid #808080;
+
+
+}
+
+.border-effect {
+  border: 10px solid #c0c0c0;
+}
+
+.border-effect>* {
+  border: 5px solid white;
+  border-top: 5px solid #808080;
+  border-left: 5px solid #808080;
+  height: 100%;
+  /* Second 'border' */
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background-color: #1f2024;
   background-color: #bdbdbd;
-
 }
 
 button,
@@ -27,13 +46,21 @@ form {
   border-right: 2px solid #7f7f7f;
   padding: 3px;
   border-style: outset;
+  /* width: 100%; */
 }
 
 form {
   display: grid;
 }
 
-form>* {
+#toolbar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+
+}
+
+/* form children except submit */
+form>*:not(:last-child) {
   display: grid;
   grid-template-columns: 1fr 1fr;
 }
@@ -43,8 +70,6 @@ button:hover {
   border-bottom: 2px solid white;
   border-right: 2px solid white;
 }
-
-/* change all form inputs */
 
 input,
 textarea,
@@ -70,32 +95,20 @@ select:focus {
   outline: none;
 }
 
-
-
 a {
   color: inherit;
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-}
-
-.newBunkerContainer {
-  position: absolute;
-  z-index: 3;
-  top: 5px;
-  left: 5px;
-  gap: 1rem;
-  padding: 3px 5px;
-  z-index: 3;
+#controls-wrapper {
   text-transform: uppercase;
-
-
 }
 
+#canvas-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
 
 .react-p5-wrapper {
   /* background-color: white; */

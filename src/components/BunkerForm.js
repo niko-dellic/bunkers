@@ -1,10 +1,16 @@
-export default function BunkerForm() {
+export default function BunkerForm({ onFormDataChange }) {
+  // Function to handle form submission
+  const handleSubmit = (e) => {
+    e.stopPropagation();
+    e.preventDefault(); // Prevent default form submission behavior
+    const formData = new FormData(e.target); // Create a FormData object from the form
+    const formProps = Object.fromEntries(formData); // Convert formData to a simple object
+    onFormDataChange(formProps); // Pass the form data object back to the parent component
+  };
+
   return (
     <form
-      onClick={(e) => {
-        e.stopPropagation();
-        console.log("Form clicked");
-      }}
+      onSubmit={handleSubmit} // Set the onSubmit handler
     >
       <label>
         Name
@@ -12,16 +18,14 @@ export default function BunkerForm() {
       </label>
       <label>
         Stockpile
-        <input type="text" name="name" />
+        <input type="text" name="stockpile" />{" "}
+        {/* Corrected the name attribute */}
       </label>
       <label>
         How you spend your time
-        <textarea
-          name="fears"
-          // disable resize
-          style={{ resize: "none" }}
-        />
+        <textarea name="fears" style={{ resize: "none" }} />
       </label>
+      <button type="submit">Submit</button>
     </form>
   );
 }

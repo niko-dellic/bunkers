@@ -82,8 +82,6 @@ function sketch(updateBounds, width, height) {
       };
       console.log("Bounds of drawn area:", bounds);
       updateBounds(bounds);
-      // console.log("Bounds of drawn area:", bounds);
-      // Optionally, use bounds for further processing
     };
   };
 }
