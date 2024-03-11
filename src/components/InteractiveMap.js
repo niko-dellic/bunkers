@@ -17,7 +17,7 @@ import { WebMercatorViewport } from "@deck.gl/core";
 import * as d3 from "d3-delaunay";
 import "mapbox-gl/dist/mapbox-gl.css";
 import UX from "./UX";
-import Canvas from "./Canvas";
+// import Canvas from "./Canvas";
 
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -300,14 +300,14 @@ export default function InteractiveMap({}) {
         p5Instance={p5Instance}
         setP5Instance={setP5Instance}
       />
-      <Canvas
+      {/* <Canvas
         showCanvas={showCanvas}
         setShowCanvas={setShowCanvas}
         canvasDrawingBounds={canvasDrawingBounds}
         setCanvasDrawingBounds={setCanvasDrawingBounds}
         p5Instance={p5Instance}
         setP5Instance={setP5Instance}
-      />
+      /> */}
       <DeckGL
         initialViewState={INITIAL_VIEW_STATE}
         onViewStateChange={(e) => setViewState(e.viewState)}

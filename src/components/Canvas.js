@@ -91,8 +91,8 @@ export default function Canvas({
 
   useEffect(() => {
     setIsClient(true); // Component has mounted, set the flag to true
-    const width = 1500;
-    const height = 800;
+    const width = window?.innerWidth || 0;
+    const height = window?.innerHeight || 0;
     if (!sketchRef.current) {
       // Only create the sketch if it doesn't already exist and ensure p5 instance is accessible
       const wrappedSketch = (p) => {
