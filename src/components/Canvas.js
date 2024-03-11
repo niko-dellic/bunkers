@@ -37,7 +37,7 @@ function sketch(updateBounds) {
       p.line(x, y, x, y + interval - offset); // Left border
 
       // Bottom and right border - darker gray
-      p.stroke("#747474"); // Darker gray stroke
+      p.stroke("#7f7f7f"); // Darker gray stroke
       p.line(
         x + interval - offset,
         y,
@@ -79,8 +79,15 @@ function sketch(updateBounds) {
   };
 }
 export default function Canvas({ canvas, showCanvas, setShowCanvas }) {
-  const [bounds, setBounds] = useState({ minX: 0, maxX: 0, minY: 0, maxY: 0 });
-  const updateBounds = useRef((newBounds) => setBounds(newBounds)).current;
+  const [canvasDrawingBounds, setCanvasDrawingBounds] = useState({
+    minX: 0,
+    maxX: 0,
+    minY: 0,
+    maxY: 0,
+  });
+  const updateBounds = useRef((newBounds) =>
+    setCanvasDrawingBounds(newBounds)
+  ).current;
 
   // Sketch Ref to prevent re-creation of the sketch on every render
   const sketchRef = useRef(null);

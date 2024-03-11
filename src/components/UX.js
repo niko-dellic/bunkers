@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import BunkerForm from "./BunkerForm";
 
 export default function UX({ showCanvas, setShowCanvas }) {
   const handleSaveDrawing = () => {
@@ -33,14 +34,17 @@ export default function UX({ showCanvas, setShowCanvas }) {
         </button>
       )}
       {showCanvas && (
-        <button
-          onClick={(e) => {
-            handleSaveDrawing();
-            setShowCanvas(false);
-          }}
-        >
-          SAVE DRAWING
-        </button>
+        <>
+          <button
+            onClick={(e) => {
+              handleSaveDrawing();
+              setShowCanvas(false);
+            }}
+          >
+            SAVE DRAWING
+          </button>
+          <BunkerForm />
+        </>
       )}
     </div>
   );

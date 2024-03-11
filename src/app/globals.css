@@ -2,6 +2,9 @@
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+  text-transform: uppercase;
+  font-size: 11pt;
+
 }
 
 html,
@@ -16,6 +19,58 @@ body {
   background-color: #bdbdbd;
 
 }
+
+button,
+form {
+  background-color: #bdbdbd;
+  border: 2px solid white;
+  border-bottom: 2px solid #7f7f7f;
+  border-right: 2px solid #7f7f7f;
+  padding: 3px;
+  border-style: outset;
+}
+
+form {
+  display: grid;
+}
+
+form>* {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+button:hover {
+  border: 2px solid #7f7f7f;
+  border-bottom: 2px solid white;
+  border-right: 2px solid white;
+}
+
+/* change all form inputs */
+
+input,
+textarea,
+select {
+  background-color: red;
+  border-radius: 0;
+  margin-left: 5px;
+}
+
+/* disable border when active */
+input:active,
+textarea:active,
+select:active {
+  border: none;
+  outline: none;
+}
+
+/* disable border and outline when focused */
+input:focus,
+textarea:focus,
+select:focus {
+  border: none;
+  outline: none;
+}
+
 
 a {
   color: inherit;
@@ -33,18 +88,12 @@ a {
   z-index: 3;
   top: 5px;
   left: 5px;
-  text-align: center;
   gap: 1rem;
   padding: 3px 5px;
   z-index: 3;
 
 }
 
-.newBunker:hover {
-  background-color: white;
-  color: black;
-  cursor: pointer;
-}
 
 .react-p5-wrapper {
   /* background-color: white; */

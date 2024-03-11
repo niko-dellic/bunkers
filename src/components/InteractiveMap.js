@@ -160,10 +160,10 @@ export default function InteractiveMap({}) {
     new GeoJsonLayer({
       id: "geojson-layer",
       data: bunkerCentroids,
-      stroked: true,
+      stroked: false,
       filled: true,
       pointType: "circle",
-      getFillColor: [255, 255, 255],
+      getFillColor: [255, 255, 255, 175],
       getPointRadius: 10,
       pointRadiusMaxPixels: 10,
       extensions: [new MaskExtension()],
@@ -181,7 +181,7 @@ export default function InteractiveMap({}) {
         extensions: [new MaskExtension(), new PathStyleExtension()],
         maskId: "geofence",
         maskInverted: true,
-        getDashArray: [40, 30],
+        getDashArray: [1, 60],
       }),
     !drawSequence &&
       new ArcLayer({
@@ -191,8 +191,8 @@ export default function InteractiveMap({}) {
           return d.geometry.coordinates[0];
         },
         getTargetPosition: (d) => d.geometry.coordinates[1],
-        getSourceColor: [255, 255, 255, 150],
-        getTargetColor: [255, 255, 255, 150],
+        getSourceColor: [255, 255, 255, 200],
+        getTargetColor: [255, 255, 255, 200],
         getWidth: 2,
         getHeight: -0.5,
         extensions: [new MaskExtension()],
