@@ -81,6 +81,7 @@ export default function InteractiveMap({}) {
   });
   const [projectedBounds, setProjectedBounds] = useState(null);
   const [p5Instance, setP5Instance] = useState(null);
+  const [selectedBunker, setSelectedBunker] = useState(null);
 
   useEffect(() => {
     document.addEventListener("contextmenu", (event) => event.preventDefault());
@@ -162,6 +163,14 @@ export default function InteractiveMap({}) {
         extensions: [new MaskExtension()],
         maskId: "geofence",
         maskByInstance: true,
+        pickable: true,
+        onHover: (info) => {
+          if (info.layer) {
+            if (info.index !== selectedBunker) {
+              setSelectedBunker(i);
+            }
+          }
+        },
       });
     });
     setBunkerLayers(layers);
@@ -252,6 +261,7 @@ export default function InteractiveMap({}) {
           p5Instance={p5Instance}
           canvasDrawingBounds={canvasDrawingBounds}
           projectedBounds={projectedBounds}
+          selectedBunker={selectedBunker}
         />
       </div>
       <div className="border-effect">

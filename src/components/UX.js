@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import BunkerForm from "./BunkerForm";
+import DisplayBunkerProperties from "./DisplayBunkerProperties";
 import dynamic from "next/dynamic";
 
 // Dynamically import ReactP5Wrapper with SSR disabled
@@ -33,6 +34,7 @@ export default function UX({
   p5Instance,
   canvasDrawingBounds,
   projectedBounds,
+  selectedBunker,
 }) {
   // Save Canvas as PNG and form data as JSON
   const saveBunker = (newFormData) => {
@@ -95,11 +97,9 @@ export default function UX({
         </button>
       </div>
 
-      {showCanvas && (
-        <>
-          {/* Removed the SAVE DRAWING button, as saving is triggered after form submission now */}
-          <BunkerForm onFormDataChange={handleFormData} />
-        </>
+      {showCanvas && <BunkerForm onFormDataChange={handleFormData} />}
+      {!showCanvas && selectedBunker && (
+        <DisplayBunkerProperties selectedBunker={selectedBunker} />
       )}
     </div>
   );

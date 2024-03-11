@@ -24,7 +24,7 @@ function sketch(updateBounds, width, height) {
 
     p.setup = () => {
       p.createCanvas(width, height);
-      p.background(255, 255, 255, 0); // Transparent background
+      p.background(255, 0, 0, 0); // Transparent background
     };
 
     p.draw = () => {
@@ -98,8 +98,14 @@ export default function Canvas({
 
   useEffect(() => {
     setIsClient(true); // Component has mounted, set the flag to true
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+
+    // const width = window.innerWidth;
+    // const height = window.innerHeight;
+
+    // get the element width of the parent container
+    const width = document.getElementById("canvas-wrapper").offsetWidth;
+    const height = document.getElementById("canvas-wrapper").offsetHeight;
+
     if (!sketchRef.current) {
       // Only create the sketch if it doesn't already exist and ensure p5 instance is accessible
       const wrappedSketch = (p) => {
