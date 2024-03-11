@@ -11,10 +11,12 @@ import { buffer } from "@turf/turf";
 import { BitmapLayer } from "@deck.gl/layers";
 import { bbox } from "@turf/turf";
 import { ArcLayer } from "@deck.gl/layers";
+import { PathStyleExtension } from "@deck.gl/extensions";
+
 import * as d3 from "d3-delaunay";
 import "mapbox-gl/dist/mapbox-gl.css";
-import NewBunker from "./NewBunker";
-import DrawBunker from "./DrawBunker";
+import UX from "./UX";
+import Canvas from "./Canvas";
 
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -33,11 +35,6 @@ const postProcessEffect = new PostProcessEffect(dotScreen, {
   size: 3,
 });
 
-const canvasDimensions = {
-  x: window.innerWidth,
-  y: window.innerHeight,
-};
-
 const maskRadius = 150;
 
 export default function InteractiveMap({}) {
@@ -50,7 +47,8 @@ export default function InteractiveMap({}) {
   const [drawSequence, setDrawSequence] = useState(false);
   const [newDrawingPts, setNewDrawingPts] = useState([]);
   const [newDrawingScreenPts, setNewDrawingScreenPts] = useState([]);
-  const [showDrawingCanvas, setShowDrawingCanvas] = useState(false);
+  const [showCanvas, setShowCanvas] = useState(false);
+  const canvas = useRef(null);
 
   useEffect(() => {
     document.addEventListener("contextmenu", (event) => event.preventDefault());
@@ -157,7 +155,7 @@ export default function InteractiveMap({}) {
         getPointRadius: maskRadius,
         getFillColor: [255, 0, 0, 50],
         getLineColor: [255, 0, 0, 255],
-        getLineWidth: 10,
+        getLineWidth: 3,
       }),
     new GeoJsonLayer({
       id: "geojson-layer",
@@ -180,9 +178,10 @@ export default function InteractiveMap({}) {
         lineWidthUnits: "pixels",
         getLineColor: [255, 255, 255, 100],
         getLineWidth: 3,
-        extensions: [new MaskExtension()],
+        extensions: [new MaskExtension(), new PathStyleExtension()],
         maskId: "geofence",
         maskInverted: true,
+        getDashArray: [40, 30],
       }),
     !drawSequence &&
       new ArcLayer({
@@ -192,8 +191,8 @@ export default function InteractiveMap({}) {
           return d.geometry.coordinates[0];
         },
         getTargetPosition: (d) => d.geometry.coordinates[1],
-        getSourceColor: [253, 128, 93],
-        getTargetColor: [253, 128, 93],
+        getSourceColor: [255, 255, 255, 150],
+        getTargetColor: [255, 255, 255, 150],
         getWidth: 2,
         getHeight: -0.5,
         extensions: [new MaskExtension()],
@@ -253,28 +252,15 @@ export default function InteractiveMap({}) {
 
   return (
     <div>
-      <NewBunker
-        drawSequence={drawSequence}
-        setDrawSequence={setDrawSequence}
-        setNewDrawingPts={setNewDrawingPts}
-        newDrawingPts={newDrawingPts}
-        newDrawingScreenPts={newDrawingScreenPts}
-        setNewDrawingScreenPts={setNewDrawingScreenPts}
-        showDrawingCanvas={showDrawingCanvas}
-        setShowDrawingCanvas={setShowDrawingCanvas}
-        canvasDimensions={canvasDimensions}
+      <UX showCanvas={showCanvas} setShowCanvas={setShowCanvas} />
+      <Canvas
+        canvas={canvas}
+        showCanvas={showCanvas}
+        setShowCanvas={setShowCanvas}
       />
-      {showDrawingCanvas && (
-        <DrawBunker
-          drawSequence={drawSequence}
-          newDrawingScreenPts={newDrawingScreenPts}
-          canvasDimensions={canvasDimensions}
-        />
-      )}
       <DeckGL
-        getCursor={() => (drawSequence ? "crosshair" : "grab")}
         initialViewState={INITIAL_VIEW_STATE}
-        controller={!drawSequence && true}
+        controller={true}
         layers={layers}
         autoTooltip={true}
         autoResize={true}
@@ -299,21 +285,11 @@ export default function InteractiveMap({}) {
 
           setCursor(d);
         }}
-        onClick={(event) => {
-          if (drawSequence) {
-            handleDrawing(event);
-          }
-        }}
-        onDrag={(event) => {
-          if (drawSequence) {
-            handleDrawing(event);
-          }
-        }}
       >
-        <Map
+        {/* <Map
           mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
           mapStyle="mapbox://styles/mapbox/dark-v11"
-        />
+        /> */}
       </DeckGL>
     </div>
   );
