@@ -30,7 +30,7 @@ export default function UX({ showCanvas, setShowCanvas }) {
             setShowCanvas(false);
           }}
         >
-          CANCEL
+          X
         </button>
       )}
       {showCanvas && (

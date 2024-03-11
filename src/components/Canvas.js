@@ -1,6 +1,4 @@
-// import { P5Wrapper } from "@p5-wrapper/react";
 import { useState, useRef, useEffect } from "react";
-
 import { ReactP5Wrapper } from "@p5-wrapper/react";
 
 function sketch(updateBounds) {
@@ -78,13 +76,12 @@ function sketch(updateBounds) {
     };
   };
 }
-export default function Canvas({ canvas, showCanvas, setShowCanvas }) {
-  const [canvasDrawingBounds, setCanvasDrawingBounds] = useState({
-    minX: 0,
-    maxX: 0,
-    minY: 0,
-    maxY: 0,
-  });
+export default function Canvas({
+  showCanvas,
+  setShowCanvas,
+  canvasDrawingBounds,
+  setCanvasDrawingBounds,
+}) {
   const updateBounds = useRef((newBounds) =>
     setCanvasDrawingBounds(newBounds)
   ).current;

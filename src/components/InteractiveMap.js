@@ -12,6 +12,7 @@ import { BitmapLayer } from "@deck.gl/layers";
 import { bbox } from "@turf/turf";
 import { ArcLayer } from "@deck.gl/layers";
 import { PathStyleExtension } from "@deck.gl/extensions";
+import { WebMercatorViewport } from "@deck.gl/core";
 
 import * as d3 from "d3-delaunay";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -37,7 +38,34 @@ const postProcessEffect = new PostProcessEffect(dotScreen, {
 
 const maskRadius = 150;
 
+function convertToBounds(bounds, map) {
+  const viewport = new WebMercatorViewport({
+    width: map.width,
+    height: map.height,
+    latitude: map.latitude,
+    longitude: map.longitude,
+    zoom: map.zoom,
+    pitch: map.pitch,
+    bearing: map.bearing,
+  });
+
+  // Convert pixel bounds to geographical coordinates
+  const bottomLeft = viewport.unproject([bounds.minX, bounds.maxY]);
+  const topRight = viewport.unproject([bounds.maxX, bounds.minY]);
+
+  // bottomLeft and topRight now contain [longitude, latitude] arrays
+  const geoBounds = {
+    westLng: bottomLeft[0],
+    southLat: bottomLeft[1],
+    eastLng: topRight[0],
+    northLat: topRight[1],
+  };
+
+  console.log(geoBounds);
+}
+
 export default function InteractiveMap({}) {
+  const [viewState, setViewState] = useState(INITIAL_VIEW_STATE);
   const [cursor, setCursor] = useState(null);
   const [glb, setGlb] = useState(null);
   const [bunkerCentroids, setBunkerCentroids] = useState([]);
@@ -48,7 +76,13 @@ export default function InteractiveMap({}) {
   const [newDrawingPts, setNewDrawingPts] = useState([]);
   const [newDrawingScreenPts, setNewDrawingScreenPts] = useState([]);
   const [showCanvas, setShowCanvas] = useState(false);
-  const canvas = useRef(null);
+  const map = useRef(null);
+  const [canvasDrawingBounds, setCanvasDrawingBounds] = useState({
+    minX: -Infinity,
+    maxX: Infinity,
+    minY: -Infinity,
+    maxY: Infinity,
+  });
 
   useEffect(() => {
     document.addEventListener("contextmenu", (event) => event.preventDefault());
@@ -133,6 +167,14 @@ export default function InteractiveMap({}) {
     });
     setBunkerLayers(layers);
   }, [bunkers]);
+
+  useEffect(() => {
+    // Assuming bounds is your state variable with minX, maxX, minY, maxY
+    if (canvasDrawingBounds.minX !== -Infinity) {
+      const geoBounds = convertToBounds(canvasDrawingBounds, viewState);
+      // Now you can use geoBounds for whatever you need
+    }
+  }, [canvasDrawingBounds]); // Depend on bounds state
 
   // layers array
   const layers = [
@@ -231,7 +273,6 @@ export default function InteractiveMap({}) {
 
       const screenPts = newDrawingScreenPts;
       screenPts.push([event.x, event.y]);
-      console.log(screenPts);
 
       // Calculate the min and max for x and y from screenPts
       const minX = Math.min(...screenPts.map((pt) => pt[0]));
@@ -254,12 +295,15 @@ export default function InteractiveMap({}) {
     <div>
       <UX showCanvas={showCanvas} setShowCanvas={setShowCanvas} />
       <Canvas
-        canvas={canvas}
         showCanvas={showCanvas}
         setShowCanvas={setShowCanvas}
+        canvasDrawingBounds={canvasDrawingBounds}
+        setCanvasDrawingBounds={setCanvasDrawingBounds}
       />
       <DeckGL
         initialViewState={INITIAL_VIEW_STATE}
+        onViewStateChange={(e) => setViewState(e.viewState)}
+        ref={map}
         controller={true}
         layers={layers}
         autoTooltip={true}
@@ -286,10 +330,12 @@ export default function InteractiveMap({}) {
           setCursor(d);
         }}
       >
-        {/* <Map
+        <Map
           mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
+          // mercator projection
+          projection="mercator"
           mapStyle="mapbox://styles/mapbox/dark-v11"
-        /> */}
+        />
       </DeckGL>
     </div>
   );
