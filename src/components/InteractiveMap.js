@@ -83,6 +83,7 @@ export default function InteractiveMap({}) {
     minY: -Infinity,
     maxY: Infinity,
   });
+  const [p5Instance, setP5Instance] = useState(null);
 
   useEffect(() => {
     document.addEventListener("contextmenu", (event) => event.preventDefault());
@@ -293,12 +294,19 @@ export default function InteractiveMap({}) {
 
   return (
     <div>
-      <UX showCanvas={showCanvas} setShowCanvas={setShowCanvas} />
+      <UX
+        showCanvas={showCanvas}
+        setShowCanvas={setShowCanvas}
+        p5Instance={p5Instance}
+        setP5Instance={setP5Instance}
+      />
       <Canvas
         showCanvas={showCanvas}
         setShowCanvas={setShowCanvas}
         canvasDrawingBounds={canvasDrawingBounds}
         setCanvasDrawingBounds={setCanvasDrawingBounds}
+        p5Instance={p5Instance}
+        setP5Instance={setP5Instance}
       />
       <DeckGL
         initialViewState={INITIAL_VIEW_STATE}
@@ -330,12 +338,12 @@ export default function InteractiveMap({}) {
           setCursor(d);
         }}
       >
-        <Map
+        {/* <Map
           mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
           // mercator projection
           projection="mercator"
           mapStyle="mapbox://styles/mapbox/dark-v11"
-        />
+        /> */}
       </DeckGL>
     </div>
   );

@@ -1,15 +1,17 @@
 import { useState, useEffect } from "react";
 import BunkerForm from "./BunkerForm";
 
-export default function UX({ showCanvas, setShowCanvas }) {
-  const handleSaveDrawing = () => {
-    // Note: Saving functionality needs to be adapted to work with @p5-wrapper/react.
-    // This library may not directly expose p5 methods like saveCanvas(),
-    // so you might need to implement a custom saving function.
-    // One approach could be to access the canvas DOM element and save it as an image.
-    console.log(
-      "Implement the save functionality based on your project requirements."
-    );
+export default function UX({
+  showCanvas,
+  setShowCanvas,
+  p5Instance,
+  setP5Instance,
+}) {
+  // Save Canvas as PNG
+  const saveCanvas = () => {
+    if (p5Instance) {
+      p5Instance.saveCanvas("myCanvas", "png"); // 'myCanvas' is the filename, 'png' is the format
+    }
   };
 
   return (
@@ -37,7 +39,7 @@ export default function UX({ showCanvas, setShowCanvas }) {
         <>
           <button
             onClick={(e) => {
-              handleSaveDrawing();
+              saveCanvas();
               setShowCanvas(false);
             }}
           >

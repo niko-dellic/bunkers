@@ -81,20 +81,27 @@ export default function Canvas({
   setShowCanvas,
   canvasDrawingBounds,
   setCanvasDrawingBounds,
+  p5Instance,
+  setP5Instance,
 }) {
   const updateBounds = useRef((newBounds) =>
     setCanvasDrawingBounds(newBounds)
   ).current;
 
-  // Sketch Ref to prevent re-creation of the sketch on every render
-  const sketchRef = useRef(null);
-
   useEffect(() => {
     if (!sketchRef.current) {
-      // Only create the sketch if it doesn't already exist
-      sketchRef.current = sketch(updateBounds);
+      // Only create the sketch if it doesn't already exist and ensure p5 instance is accessible
+      const wrappedSketch = (p) => {
+        const customSketch = sketch(updateBounds);
+        customSketch(p);
+        setP5Instance(p); // Save the p5 instance for later use
+      };
+      sketchRef.current = wrappedSketch;
     }
   }, [updateBounds]);
 
-  return showCanvas && <ReactP5Wrapper sketch={sketchRef.current} />;
+  // Sketch Ref to prevent re-creation of the sketch on every render
+  const sketchRef = useRef(null);
+
+  return <>{showCanvas && <ReactP5Wrapper sketch={sketchRef.current} />}</>;
 }
