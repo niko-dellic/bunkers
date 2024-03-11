@@ -17,7 +17,7 @@ import { WebMercatorViewport } from "@deck.gl/core";
 import * as d3 from "d3-delaunay";
 import "mapbox-gl/dist/mapbox-gl.css";
 import UX from "./UX";
-// import Canvas from "./Canvas";
+import Canvas from "./Canvas";
 
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -72,11 +72,7 @@ export default function InteractiveMap({}) {
   const [bunkers, setBunkers] = useState([]);
   const [bunkerLayers, setBunkerLayers] = useState(null);
   const [network, setNetwork] = useState([]);
-  const [drawSequence, setDrawSequence] = useState(false);
-  const [newDrawingPts, setNewDrawingPts] = useState([]);
-  const [newDrawingScreenPts, setNewDrawingScreenPts] = useState([]);
   const [showCanvas, setShowCanvas] = useState(false);
-  const map = useRef(null);
   const [canvasDrawingBounds, setCanvasDrawingBounds] = useState({
     minX: -Infinity,
     maxX: Infinity,
@@ -179,7 +175,7 @@ export default function InteractiveMap({}) {
 
   // layers array
   const layers = [
-    !drawSequence &&
+    !showCanvas &&
       new GeoJsonLayer({
         id: "geofence",
         data: cursor,
@@ -188,7 +184,7 @@ export default function InteractiveMap({}) {
         operation: "mask",
         getPointRadius: maskRadius,
       }),
-    !drawSequence &&
+    !showCanvas &&
       new GeoJsonLayer({
         id: "geofence-display",
         data: cursor,
@@ -213,20 +209,19 @@ export default function InteractiveMap({}) {
       maskId: "geofence",
       maskInverted: true,
     }),
-    !drawSequence &&
-      new GeoJsonLayer({
-        id: "network-layer",
-        data: network,
-        stroked: true,
-        lineWidthUnits: "pixels",
-        getLineColor: [255, 255, 255, 100],
-        getLineWidth: 3,
-        extensions: [new MaskExtension(), new PathStyleExtension()],
-        maskId: "geofence",
-        maskInverted: true,
-        getDashArray: [1, 60],
-      }),
-    !drawSequence &&
+    new GeoJsonLayer({
+      id: "network-layer",
+      data: network,
+      stroked: true,
+      lineWidthUnits: "pixels",
+      getLineColor: [255, 255, 255, 100],
+      getLineWidth: 3,
+      extensions: [new MaskExtension(), new PathStyleExtension()],
+      maskId: "geofence",
+      maskInverted: true,
+      getDashArray: [1, 60],
+    }),
+    !showCanvas &&
       new ArcLayer({
         id: "arc-layer",
         data: network.features,
@@ -241,56 +236,9 @@ export default function InteractiveMap({}) {
         extensions: [new MaskExtension()],
         maskId: "geofence",
       }),
-    drawSequence &&
-      new GeoJsonLayer({
-        id: "new-bunker-layer",
-        data: [
-          {
-            type: "Feature",
-            geometry: {
-              type: newDrawingPts.length > 1 ? "Polygon" : "Point",
-              coordinates:
-                newDrawingPts.length > 1 ? [newDrawingPts] : newDrawingPts[0],
-            },
-          },
-        ],
-        stroked: true,
-        filled: true,
-        lineWidthUnits: "pixels",
-        getLineColor: (d) => {
-          return [255, 0, 0, 255];
-        },
-        pointType: "circle",
-        getFillColor: [255, 0, 0, 100],
-        getPointRadius: 10,
-        getLineWidth: 5,
-      }),
-    // bunkerLayers && bunkerLayers,
+
+    bunkerLayers && bunkerLayers,
   ];
-
-  const handleDrawing = (event) => {
-    if (drawSequence) {
-      setNewDrawingPts([...newDrawingPts, event.coordinate]);
-
-      const screenPts = newDrawingScreenPts;
-      screenPts.push([event.x, event.y]);
-
-      // Calculate the min and max for x and y from screenPts
-      const minX = Math.min(...screenPts.map((pt) => pt[0]));
-      const maxX = Math.max(...screenPts.map((pt) => pt[0]));
-      const minY = Math.min(...screenPts.map((pt) => pt[1]));
-      const maxY = Math.max(...screenPts.map((pt) => pt[1]));
-
-      // Remap the points to the canvas dimensions
-      const remappedPts = screenPts.map((pt) => {
-        const remappedX = ((pt[0] - minX) / (maxX - minX)) * canvasDimensions.x;
-        const remappedY = ((pt[1] - minY) / (maxY - minY)) * canvasDimensions.y;
-        return [remappedX, remappedY];
-      });
-
-      setNewDrawingScreenPts(remappedPts);
-    }
-  };
 
   return (
     <div>
@@ -300,18 +248,17 @@ export default function InteractiveMap({}) {
         p5Instance={p5Instance}
         setP5Instance={setP5Instance}
       />
-      {/* <Canvas
+      <Canvas
         showCanvas={showCanvas}
         setShowCanvas={setShowCanvas}
         canvasDrawingBounds={canvasDrawingBounds}
         setCanvasDrawingBounds={setCanvasDrawingBounds}
         p5Instance={p5Instance}
         setP5Instance={setP5Instance}
-      /> */}
+      />
       <DeckGL
         initialViewState={INITIAL_VIEW_STATE}
         onViewStateChange={(e) => setViewState(e.viewState)}
-        ref={map}
         controller={true}
         layers={layers}
         autoTooltip={true}

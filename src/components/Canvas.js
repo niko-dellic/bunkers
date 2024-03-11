@@ -1,7 +1,16 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ReactP5Wrapper } from "@p5-wrapper/react";
+// import { ReactP5Wrapper } from "@p5-wrapper/react";
+import dynamic from "next/dynamic";
+
+// Dynamically import ReactP5Wrapper with SSR disabled
+const ReactP5Wrapper = dynamic(
+  () => import("@p5-wrapper/react").then((mod) => mod.ReactP5Wrapper),
+  {
+    ssr: false,
+  }
+);
 
 function sketch(updateBounds, width, height) {
   return (p) => {
@@ -91,8 +100,8 @@ export default function Canvas({
 
   useEffect(() => {
     setIsClient(true); // Component has mounted, set the flag to true
-    const width = window?.innerWidth || 0;
-    const height = window?.innerHeight || 0;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
     if (!sketchRef.current) {
       // Only create the sketch if it doesn't already exist and ensure p5 instance is accessible
       const wrappedSketch = (p) => {
@@ -107,5 +116,5 @@ export default function Canvas({
   // Sketch Ref to prevent re-creation of the sketch on every render
   const sketchRef = useRef(null);
 
-  return <>{showCanvas && <ReactP5Wrapper sketch={sketchRef.current} />}</>;
+  return showCanvas && <ReactP5Wrapper sketch={sketchRef.current} />;
 }
