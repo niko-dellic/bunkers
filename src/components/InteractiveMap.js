@@ -60,12 +60,13 @@ function convertToBounds(bounds, viewState) {
     northLat: topRight[1],
   };
 
-  const geoCentroid = {
+  const viewProps = {
     longitude: centroid[0],
     latitude: centroid[1],
+    zoom: viewState.zoom,
   };
 
-  return [geoBounds, geoCentroid];
+  return [geoBounds, viewProps];
 }
 
 export default function InteractiveMap({ isMobile }) {
@@ -80,7 +81,7 @@ export default function InteractiveMap({ isMobile }) {
     minZoom: 15,
     maxZoom: 22,
   });
-  // const [viewState, setViewState] = useState(initialViewState);
+  const [viewState, setViewState] = useState(initialViewState);
   const [viewStateBounds, setViewStateBounds] = useState({});
   const [initialEntry, setInitialEntry] = useState(false);
 
@@ -100,7 +101,7 @@ export default function InteractiveMap({ isMobile }) {
   });
   // projected drawing bounds
   const [bounds, setBounds] = useState(null);
-  const [imageCentroid, setImageCentroid] = useState(null);
+  const [imageViewState, setImageViewState] = useState(null);
 
   const [p5Instance, setP5Instance] = useState(null);
   const [selectedBunker, setSelectedBunker] = useState(null);
@@ -214,7 +215,7 @@ export default function InteractiveMap({ isMobile }) {
   }, []);
 
   // create function to handle bunker hover
-  const handleBunkerHover = (info) => {
+  const handleBunkerTrigger = (info) => {
     if (info.layer) {
       if (info.index !== selectedBunker) {
         setSelectedBunker(info.index);
@@ -236,14 +237,13 @@ export default function InteractiveMap({ isMobile }) {
         maskId: "geofence",
         maskByInstance: true,
         pickable: true,
-        onHover: (info) => handleBunkerHover(info),
+        onHover: (info) => handleBunkerTrigger(info),
       });
     });
     setBunkerLayers(layers);
   }, [bunkers]);
 
   useEffect(() => {
-    let centroid;
     const layers = minesweeperBunkers.map((b, i) => {
       // flatten  "bounds": {} to an array
       const imageBounds = [
@@ -253,9 +253,6 @@ export default function InteractiveMap({ isMobile }) {
         b.bounds.northLat,
       ];
 
-      // get average of the lat and long for centroid
-      centroid = [b.imageCentroid.longitude, b.imageCentroid.latitude];
-
       return new BitmapLayer({
         id: `msBunkers-${i}`,
         bounds: imageBounds,
@@ -264,7 +261,7 @@ export default function InteractiveMap({ isMobile }) {
         // maskId: "geofence",
         // maskByInstance: true,
         pickable: true,
-        onHover: () => handleBunkerHover(b),
+        onClick: () => handleBunkerTrigger(b),
       });
     });
 
@@ -274,12 +271,12 @@ export default function InteractiveMap({ isMobile }) {
   useEffect(() => {
     // Assuming bounds is your state variable with minX, maxX, minY, maxY
     if (canvasDrawingBounds.minX !== -Infinity) {
-      const [geoBounds, centroid] = convertToBounds(
+      const [geoBounds, vstate] = convertToBounds(
         canvasDrawingBounds,
-        initialViewState
+        viewState
       );
       setBounds(geoBounds);
-      setImageCentroid(centroid);
+      setImageViewState(vstate);
       // Now you can use geoBounds for whatever you need
     }
   }, [canvasDrawingBounds]); // Depend on bounds state
@@ -289,11 +286,11 @@ export default function InteractiveMap({ isMobile }) {
     if (!selectedBunker || typeof selectedBunker !== "object") return;
 
     setInitialViewState({
-      ...initialViewState,
+      ...viewState,
       pitch: 0,
-      zoom: 20,
-      latitude: selectedBunker.imageCentroid.latitude,
-      longitude: selectedBunker.imageCentroid.longitude,
+      zoom: selectedBunker.view.zoom,
+      latitude: selectedBunker.view.latitude,
+      longitude: selectedBunker.view.longitude,
       transitionDuration: 1500,
       transitionInterpolator: new FlyToInterpolator(),
     });
@@ -332,7 +329,7 @@ export default function InteractiveMap({ isMobile }) {
       pickable: isMobile ? true : false,
       autoHighlight: true,
       autoHighlightColor: [0, 255, 255],
-      onHover: (info) => handleBunkerHover(info),
+      onHover: (info) => handleBunkerTrigger(info),
       ...(isMobile
         ? {}
         : {
@@ -393,9 +390,9 @@ export default function InteractiveMap({ isMobile }) {
       if (initialEntry) return;
       let vs;
       if (bool) {
-        vs = { ...initialViewState, pitch: 0 };
+        vs = { ...viewState, pitch: 0 };
       } else {
-        vs = { ...initialViewState, pitch: 110 };
+        vs = { ...viewState, pitch: 110 };
       }
       setInitialEntry(true);
       setInitialViewState({
@@ -416,7 +413,7 @@ export default function InteractiveMap({ isMobile }) {
           p5Instance={p5Instance}
           canvasDrawingBounds={canvasDrawingBounds}
           bounds={bounds}
-          imageCentroid={imageCentroid}
+          imageViewState={imageViewState}
           selectedBunker={selectedBunker}
         />
       </div>
@@ -442,7 +439,8 @@ export default function InteractiveMap({ isMobile }) {
           />
           <DeckGL
             initialViewState={initialViewState}
-            onViewStateChange={({ viewState }) => {
+            onViewStateChange={(e) => {
+              const viewState = e.viewState;
               //check if viewStateBounds is an empty object
               if (Object.keys(viewStateBounds).length === 0) return viewState;
 
@@ -459,7 +457,20 @@ export default function InteractiveMap({ isMobile }) {
               if (viewState.pitch === 90) {
                 viewState.pitch = 89.999;
               }
-              // setViewState(viewState);
+              // check if the viewState is undergoing a transition
+              if (viewState.transitionDuration || !initialEntry) {
+                return viewState;
+              }
+
+              // console.log(e);
+
+              // try to set the viewState
+              try {
+                setViewState(viewState);
+              } catch (error) {
+                // console.error(error);
+              }
+
               return viewState;
             }}
             controller={{ inertia: 750, keyboard: true }}
@@ -476,7 +487,7 @@ export default function InteractiveMap({ isMobile }) {
               const a = 2000; // Adjust this base radius as needed
               const b = 0.25; // Adjust this rate to control the scaling sensitivity
 
-              const dynamicRadius = a * Math.exp(-b * initialViewState.zoom);
+              const dynamicRadius = a * Math.exp(-b * viewState.zoom);
 
               d = buffer(
                 {

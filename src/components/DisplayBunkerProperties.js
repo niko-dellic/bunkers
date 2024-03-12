@@ -1,10 +1,14 @@
 export default function DisplayBunkerProperties({ selectedBunker }) {
-  // if type is object
-  const { id, ...data } = selectedBunker.data;
   if (typeof selectedBunker === "object") {
-    // return the selectedBunker as a JSON string
-    return <pre>{JSON.stringify(data, null, 2)}</pre>;
-  } else {
-    return <div>{data}</div>;
+    // if type is object
+    const data = selectedBunker.data;
+    // drop id
+    if (data) {
+      delete data.id;
+      // return the selectedBunker as a JSON string
+      return <pre>{JSON.stringify(data, null, 2)}</pre>;
+    } else {
+      return <div>{data}</div>;
+    }
   }
 }
