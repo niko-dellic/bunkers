@@ -3,8 +3,8 @@ export default function BunkerForm({ onFormDataChange }) {
   const handleSubmit = (e) => {
     e.stopPropagation();
     e.preventDefault(); // Prevent default form submission behavior
-    const formData = new FormData(e.target); // Create a FormData object from the form
-    const formProps = Object.fromEntries(formData); // Convert formData to a simple object
+    const data = new FormData(e.target); // Create a FormData object from the form
+    const formProps = Object.fromEntries(data); // Convert formData to a simple object
     onFormDataChange(formProps); // Pass the form data object back to the parent component
   };
 
