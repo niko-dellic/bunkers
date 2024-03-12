@@ -47,18 +47,18 @@ export default function UX({
       const ctx = offScreenCanvas.getContext("2d");
       ctx.drawImage(croppedImage.canvas, 0, 0);
 
+      data.id = `bunker-${uuidv4()}`;
+
       // Convert the off-screen canvas to a data URL and trigger download
       const dataURL = offScreenCanvas.toDataURL("image/png");
-      saveImage(dataURL, "bunker");
-      // generate a unique ID for the bunker
-      data.id = uuidv4();
+      saveImage(dataURL, data.id);
 
       // Save JSON data
       const dataToSave = {
         bounds,
         data,
       };
-      saveJSON(dataToSave, "myCanvasData");
+      saveJSON(dataToSave, "bunkers-metadata");
 
       setShowCanvas(false); // Optionally hide canvas after saving
     }

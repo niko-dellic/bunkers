@@ -123,3 +123,7 @@ a {
 #bunkerGallery {
   grid-column: 1/-1;
 }
+
+.mapboxgl-control-container {
+  display: none;
+}

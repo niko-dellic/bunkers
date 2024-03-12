@@ -1,0 +1,14 @@
+{
+  "bounds": {
+    "westLng": -71.1117169475406,
+    "southLat": 42.37305982629751,
+    "eastLng": -71.11134128325988,
+    "northLat": 42.37317384718584
+  },
+  "data": {
+    "name": "a",
+    "stockpile": "b",
+    "fears": "c",
+    "id": "bunker-fd960380-08d8-4cef-b8c9-16c050b84b1c"
+  }
+}

@@ -38,6 +38,7 @@ const postProcessEffect = new PostProcessEffect(dotScreen, {
 });
 
 const maskRadius = 250;
+const numFlags = 200;
 
 function convertToBounds(bounds, map) {
   const viewport = new WebMercatorViewport({
@@ -100,7 +101,7 @@ export default function InteractiveMap({}) {
         const boundingBox = bboxPolygon(bbox(data));
 
         // populate 50 randomn points within the bounding box and a random rotation
-        const randomPoints = randomPoint(100, {
+        const randomPoints = randomPoint(numFlags, {
           bbox: boundingBox,
         });
 
@@ -112,7 +113,7 @@ export default function InteractiveMap({}) {
         setFlags(randomPoints);
 
         const buff = data.features.map((feature) => {
-          return buffer(feature, 0.0625, { units: "miles" });
+          return buffer(feature, 0.0125, { units: "miles" });
         });
         const b = buff.map((b) => bbox(b));
         setBunkers(b);
@@ -276,7 +277,7 @@ export default function InteractiveMap({}) {
       pickable: true,
       //rotate random
       getOrientation: (d) => [0, d.properties.rotation, 90],
-      sizeScale: 20,
+      sizeScale: 10,
       _lighting: "pbr",
       // _animations: {
       //   "*": { speed: 5 },
