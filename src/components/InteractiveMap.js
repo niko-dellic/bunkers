@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import DeckGL from "@deck.gl/react";
+// import flyto interpolator
+import { FlyToInterpolator } from "@deck.gl/core";
 import { Map } from "react-map-gl";
 import { GeoJsonLayer, ScenegraphLayer } from "deck.gl";
 import { PostProcessEffect } from "deck.gl";
@@ -22,33 +24,23 @@ import Canvas from "./Canvas";
 
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
-const INITIAL_VIEW_STATE = {
-  // boston
-  longitude: -71.10411036688859,
-  latitude: 42.37510184675266,
-  zoom: 14.5,
-  // pitch: 50,
-  // bearing: 30,
-  minPitch: 0,
-  maxPitch: 179,
-};
-
 const postProcessEffect = new PostProcessEffect(dotScreen, {
   size: 3,
 });
 
-const maskRadius = 250;
-const numFlags = 200;
+const numFlags = 350;
 
-function convertToBounds(bounds, map) {
+function convertToBounds(bounds, viewState) {
+  if (!viewState || !bounds) return;
+
   const viewport = new WebMercatorViewport({
-    width: map.width,
-    height: map.height,
-    latitude: map.latitude,
-    longitude: map.longitude,
-    zoom: map.zoom,
-    pitch: map.pitch,
-    bearing: map.bearing,
+    width: viewState.width,
+    height: viewState.height,
+    latitude: viewState.latitude,
+    longitude: viewState.longitude,
+    zoom: viewState.zoom,
+    pitch: viewState.pitch,
+    bearing: viewState.bearing,
   });
 
   // Convert pixel bounds to geographical coordinates
@@ -66,13 +58,39 @@ function convertToBounds(bounds, map) {
   return geoBounds;
 }
 
+function useMobileDetect() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const userAgent = navigator.userAgent.toLowerCase();
+    setIsMobile(
+      /mobile|android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(
+        userAgent
+      )
+    );
+  }, []);
+
+  return isMobile;
+}
+
 export default function InteractiveMap({}) {
-  const [viewState, setViewState] = useState(INITIAL_VIEW_STATE);
+  const [initialViewState, setInitialViewState] = useState({
+    // boston
+    longitude: -71.10411036688859,
+    latitude: 42.37510184675266,
+    zoom: 16,
+    pitch: 100,
+    minPitch: 0,
+    maxPitch: 179,
+    minZoom: 15,
+  });
+
+  const [viewState, setViewState] = useState(initialViewState);
   const [cursor, setCursor] = useState(null);
-  const [glb, setGlb] = useState(null);
   const [bunkerCentroids, setBunkerCentroids] = useState([]);
   const [bunkers, setBunkers] = useState([]);
   const [bunkerLayers, setBunkerLayers] = useState(null);
+  const [minesweeperBunkers, setMinesweeperBunkers] = useState([]);
   const [network, setNetwork] = useState([]);
   const [showCanvas, setShowCanvas] = useState(false);
   const [canvasDrawingBounds, setCanvasDrawingBounds] = useState({
@@ -85,6 +103,9 @@ export default function InteractiveMap({}) {
   const [p5Instance, setP5Instance] = useState(null);
   const [selectedBunker, setSelectedBunker] = useState(null);
   const [flags, setFlags] = useState(null);
+  const [viewStateBounds, setViewStateBounds] = useState({});
+
+  const isMobile = useMobileDetect();
 
   useEffect(() => {
     document.addEventListener("contextmenu", (event) => event.preventDefault());
@@ -98,7 +119,8 @@ export default function InteractiveMap({}) {
         // Create buffer and bbox for each point
 
         // get the bounding box for all of the bunkers
-        const boundingBox = bboxPolygon(bbox(data));
+        const dataBounds = bbox(data);
+        const boundingBox = bboxPolygon(dataBounds);
 
         // populate 50 randomn points within the bounding box and a random rotation
         const randomPoints = randomPoint(numFlags, {
@@ -170,26 +192,46 @@ export default function InteractiveMap({}) {
 
         // Now you can use `edgesGeoJSON` as the data source for a map layer
         setNetwork(edgesGeoJSON); // Assuming you have a state `network` to hold this data
+
+        // set viewStateBounds from bounding box of the data
+        setViewStateBounds({
+          westLng: dataBounds[0],
+          southLat: dataBounds[1],
+          eastLng: dataBounds[2],
+          northLat: dataBounds[3],
+        });
+      });
+
+    fetch("./assets/json/bunkers-metadata.json")
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        setMinesweeperBunkers(data);
       });
   }, []);
+
+  // create function to handle bunker hover
+  const handleBunkerHover = (info) => {
+    if (info.layer) {
+      if (info.index !== selectedBunker) {
+        setSelectedBunker(info.index);
+      }
+    } else {
+      setSelectedBunker(null);
+    }
+  };
 
   useEffect(() => {
     const layers = bunkers.map((b, i) => {
       return new BitmapLayer({
         id: `bunker-layer-${i}`,
         bounds: b,
-        image: "./assets/img/bunker.png",
+        image: "./assets/img/placeholder.png",
         extensions: [new MaskExtension()],
         maskId: "geofence",
         maskByInstance: true,
         pickable: true,
-        onHover: (info) => {
-          if (info.layer) {
-            if (info.index !== selectedBunker) {
-              setSelectedBunker(i);
-            }
-          }
-        },
+        onHover: (info) => handleBunkerHover(info),
       });
     });
     setBunkerLayers(layers);
@@ -210,22 +252,19 @@ export default function InteractiveMap({}) {
       new GeoJsonLayer({
         id: "geofence",
         data: cursor,
-        pointType: "circle",
         getFillColor: (d) => [255, 0, 0],
         operation: "mask",
-        getPointRadius: maskRadius,
       }),
     !showCanvas &&
       new GeoJsonLayer({
         id: "geofence-display",
         data: cursor,
-        pointType: "circle",
         stroked: true,
         filled: false,
-        getPointRadius: maskRadius,
-        getFillColor: [255, 0, 0, 50],
         getLineColor: [255, 0, 0, 255],
-        getLineWidth: 3,
+        getLineWidth: 2,
+        // pixels
+        lineWidthUnits: "pixels",
       }),
     new GeoJsonLayer({
       id: "geojson-layer",
@@ -236,9 +275,13 @@ export default function InteractiveMap({}) {
       getFillColor: [255, 255, 255, 175],
       getPointRadius: 10,
       pointRadiusMaxPixels: 10,
-      extensions: [new MaskExtension()],
-      maskId: "geofence",
-      maskInverted: true,
+      pickable: isMobile && true,
+      autoHighlight: true,
+      autoHighlightColor: [0, 255, 255],
+      onHover: (info) => handleBunkerHover(info),
+      extensions: !isMobile && [new MaskExtension()],
+      maskId: !isMobile && "geofence",
+      maskInverted: !isMobile && true,
     }),
     new GeoJsonLayer({
       id: "network-layer",
@@ -246,11 +289,10 @@ export default function InteractiveMap({}) {
       stroked: true,
       lineWidthUnits: "pixels",
       getLineColor: [255, 255, 255, 100],
-      getLineWidth: 3,
-      extensions: [new MaskExtension(), new PathStyleExtension()],
+      getLineWidth: 2,
+      extensions: [new MaskExtension()],
       maskId: "geofence",
       maskInverted: true,
-      getDashArray: [1, 60],
     }),
     !showCanvas &&
       new ArcLayer({
@@ -263,7 +305,7 @@ export default function InteractiveMap({}) {
         getSourceColor: [255, 255, 255, 200],
         getTargetColor: [255, 255, 255, 200],
         getWidth: 2,
-        getHeight: 0.5,
+        getHeight: -0.33,
         extensions: [new MaskExtension()],
         maskId: "geofence",
       }),
@@ -284,8 +326,22 @@ export default function InteractiveMap({}) {
       // },
     }),
 
-    bunkerLayers && bunkerLayers,
+    !isMobile && bunkerLayers && bunkerLayers,
   ];
+
+  const togglePlanView = useCallback((bool) => {
+    let vs;
+    if (bool) {
+      vs = { ...viewState, pitch: 110 };
+    } else {
+      vs = { ...viewState, pitch: 0 };
+    }
+    setInitialViewState({
+      ...vs,
+      transitionDuration: 1500,
+      transitionInterpolator: new FlyToInterpolator(),
+    });
+  }, []);
 
   return (
     <>
@@ -300,19 +356,17 @@ export default function InteractiveMap({}) {
         />
       </div>
       <div className="border-effect">
-        <div id="canvas-wrapper">
-          {/* {canvasDrawingBounds && (
-            <div
-              style={{
-                position: "absolute",
-                top: canvasDrawingBounds.minY,
-                left: canvasDrawingBounds.minX,
-                width: canvasDrawingBounds.maxX - canvasDrawingBounds.minX,
-                height: canvasDrawingBounds.maxY - canvasDrawingBounds.minY,
-                border: "5px inset red",
-              }}
-            />
-          )} */}
+        <div
+          id="canvas-wrapper"
+          onMouseEnter={(e) => {
+            if (!showCanvas) {
+              togglePlanView(true);
+            }
+          }}
+          onMouseLeave={(e) => {
+            togglePlanView(false);
+          }}
+        >
           <Canvas
             showCanvas={showCanvas}
             setShowCanvas={setShowCanvas}
@@ -322,18 +376,39 @@ export default function InteractiveMap({}) {
             setP5Instance={setP5Instance}
           />
           <DeckGL
-            initialViewState={INITIAL_VIEW_STATE}
-            onViewStateChange={(e) => setViewState(e.viewState)}
-            controller={{ inertia: 750 }}
+            initialViewState={initialViewState}
+            onViewStateChange={({ viewState }) => {
+              viewState.longitude = Math.min(
+                viewStateBounds.eastLng,
+                Math.max(viewStateBounds.westLng, viewState.longitude)
+              );
+              viewState.latitude = Math.min(
+                viewStateBounds.northLat,
+                Math.max(viewStateBounds.southLat, viewState.latitude)
+              );
+
+              // if pitch 90, set to 89.999
+              if (viewState.pitch === 90) {
+                viewState.pitch = 89.999;
+              }
+
+              return viewState;
+            }}
+            controller={{ inertia: 750, keyboard: true }}
             layers={layers}
             autoTooltip={true}
             autoResize={true}
             effects={[postProcessEffect]}
             //on mouse move, set cursor to the event
             onHover={(event) => {
-              // create a point buffer
               if (event.coordinate === undefined) return;
               let d;
+
+              // Base radius and decay rate
+              const a = 200000; // Adjust this base radius as needed
+              const b = 0.45; // Adjust this rate to control the scaling sensitivity
+
+              const dynamicRadius = a * Math.exp(-b * viewState.zoom);
 
               d = buffer(
                 {
@@ -343,7 +418,8 @@ export default function InteractiveMap({}) {
                     coordinates: event.coordinate,
                   },
                 },
-                maskRadius,
+                // mask radius divided by square root of viewstate.zoom
+                dynamicRadius,
                 { units: "meters" }
               );
 
