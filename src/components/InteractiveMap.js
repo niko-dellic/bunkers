@@ -349,12 +349,12 @@ export default function InteractiveMap({}) {
               setCursor(d);
             }}
           >
-            {/* <Map
-          mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
-          // mercator projection
-          projection="mercator"
-          mapStyle="mapbox://styles/mapbox/dark-v11"
-        /> */}
+            <Map
+              mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
+              // mercator projection
+              projection="mercator"
+              mapStyle="mapbox://styles/niko-dellic/cltohpb4n020q01phd3radn2i"
+            />
           </DeckGL>
         </div>
       </div>
