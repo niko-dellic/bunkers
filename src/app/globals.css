@@ -18,8 +18,11 @@ main {
   border: 5px solid white;
   border-bottom: 5px solid #808080;
   border-right: 5px solid #808080;
+}
 
-
+#main-mobile {
+  grid-template-rows: auto auto auto;
+  grid-template-columns: 1fr;
 }
 
 .border-effect {

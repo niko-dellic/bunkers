@@ -44,6 +44,7 @@ function convertToBounds(bounds, viewState) {
   });
 
   // Convert pixel bounds to geographical coordinates
+  console.log(viewport);
   const bottomLeft = viewport?.unproject([bounds.minX, bounds.maxY]);
   const topRight = viewport?.unproject([bounds.maxX, bounds.minY]);
 
@@ -58,22 +59,7 @@ function convertToBounds(bounds, viewState) {
   return geoBounds;
 }
 
-function useMobileDetect() {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const userAgent = navigator.userAgent.toLowerCase();
-    setIsMobile(
-      /mobile|android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(
-        userAgent
-      )
-    );
-  }, []);
-
-  return isMobile;
-}
-
-export default function InteractiveMap({}) {
+export default function InteractiveMap({ isMobile }) {
   const [initialViewState, setInitialViewState] = useState({
     // boston
     longitude: -71.10411036688859,
@@ -84,7 +70,6 @@ export default function InteractiveMap({}) {
     maxPitch: 179,
     minZoom: 15,
   });
-
   const [viewState, setViewState] = useState(initialViewState);
   const [cursor, setCursor] = useState(null);
   const [bunkerCentroids, setBunkerCentroids] = useState([]);
@@ -104,8 +89,6 @@ export default function InteractiveMap({}) {
   const [selectedBunker, setSelectedBunker] = useState(null);
   const [flags, setFlags] = useState(null);
   const [viewStateBounds, setViewStateBounds] = useState({});
-
-  const isMobile = useMobileDetect();
 
   useEffect(() => {
     document.addEventListener("contextmenu", (event) => event.preventDefault());
@@ -138,7 +121,10 @@ export default function InteractiveMap({}) {
           return buffer(feature, 0.0125, { units: "miles" });
         });
         const b = buff.map((b) => bbox(b));
-        setBunkers(b);
+
+        if (!isMobile) {
+          setBunkers(b);
+        }
 
         // Create a unique id for each feature
         data.features = data.features.map((feature, index) => {
@@ -191,7 +177,7 @@ export default function InteractiveMap({}) {
         }
 
         // Now you can use `edgesGeoJSON` as the data source for a map layer
-        setNetwork(edgesGeoJSON); // Assuming you have a state `network` to hold this data
+        setNetwork(edgesGeoJSON);
 
         // set viewStateBounds from bounding box of the data
         setViewStateBounds({
@@ -205,7 +191,6 @@ export default function InteractiveMap({}) {
     fetch("./assets/json/bunkers-metadata.json")
       .then((res) => res.json())
       .then((data) => {
-        console.log(data);
         setMinesweeperBunkers(data);
       });
   }, []);
@@ -249,6 +234,7 @@ export default function InteractiveMap({}) {
   // layers array
   const layers = [
     !showCanvas &&
+      !isMobile &&
       new GeoJsonLayer({
         id: "geofence",
         data: cursor,
@@ -267,7 +253,7 @@ export default function InteractiveMap({}) {
         lineWidthUnits: "pixels",
       }),
     new GeoJsonLayer({
-      id: "geojson-layer",
+      id: "points-layer",
       data: bunkerCentroids,
       stroked: false,
       filled: true,
@@ -275,13 +261,17 @@ export default function InteractiveMap({}) {
       getFillColor: [255, 255, 255, 175],
       getPointRadius: 10,
       pointRadiusMaxPixels: 10,
-      pickable: isMobile && true,
+      pickable: isMobile ? true : false,
       autoHighlight: true,
       autoHighlightColor: [0, 255, 255],
       onHover: (info) => handleBunkerHover(info),
-      extensions: !isMobile && [new MaskExtension()],
-      maskId: !isMobile && "geofence",
-      maskInverted: !isMobile && true,
+      ...(isMobile
+        ? {}
+        : {
+            extensions: [new MaskExtension()],
+            maskId: "geofence",
+            maskInverted: true,
+          }),
     }),
     new GeoJsonLayer({
       id: "network-layer",
@@ -378,6 +368,9 @@ export default function InteractiveMap({}) {
           <DeckGL
             initialViewState={initialViewState}
             onViewStateChange={({ viewState }) => {
+              //check if viewStateBounds is an empty object
+              if (Object.keys(viewStateBounds).length === 0) return viewState;
+
               viewState.longitude = Math.min(
                 viewStateBounds.eastLng,
                 Math.max(viewStateBounds.westLng, viewState.longitude)
