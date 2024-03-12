@@ -3,6 +3,7 @@
 import { useState } from "react";
 import BunkerForm from "./BunkerForm";
 import DisplayBunkerProperties from "./DisplayBunkerProperties";
+import { v4 as uuidv4 } from "uuid";
 
 function saveJSON(obj, filename) {
   const a = document.createElement("a");
@@ -37,9 +38,8 @@ export default function UX({
       // Extract the cropped area using p5's get() function
       const croppedImage = p5Instance.createImage(w, h);
       croppedImage.copy(p5Instance, minX, minY, w, h, 0, 0, w, h);
-      // p5Instance.get(minX, minY, width, height);
 
-      // Now, you need to create an off-screen canvas and draw the cropped image onto it
+      // Now, create an off-screen canvas and draw the cropped image onto it
       const offScreenCanvas = document.createElement("canvas");
       offScreenCanvas.style.border = "1px solid red";
       offScreenCanvas.width = w;
@@ -47,12 +47,11 @@ export default function UX({
       const ctx = offScreenCanvas.getContext("2d");
       ctx.drawImage(croppedImage.canvas, 0, 0);
 
-      // add the canvas to the DOM for debugging
-      // document.body.appendChild(offScreenCanvas);
-
       // Convert the off-screen canvas to a data URL and trigger download
       const dataURL = offScreenCanvas.toDataURL("image/png");
-      saveImage(dataURL, "croppedBunkerImage");
+      saveImage(dataURL, "bunker");
+      // generate a unique ID for the bunker
+      data.id = uuidv4();
 
       // Save JSON data
       const dataToSave = {
@@ -61,7 +60,7 @@ export default function UX({
       };
       saveJSON(dataToSave, "myCanvasData");
 
-      // setShowCanvas(false); // Optionally hide canvas after saving
+      setShowCanvas(false); // Optionally hide canvas after saving
     }
   };
 

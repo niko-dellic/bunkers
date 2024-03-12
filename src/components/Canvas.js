@@ -103,7 +103,6 @@ function sketch(updateBounds, width, height) {
         minY,
         maxY: maxY + interval,
       };
-      console.log("Bounds of drawn area:", bounds);
       updateBounds(bounds);
     };
   };
