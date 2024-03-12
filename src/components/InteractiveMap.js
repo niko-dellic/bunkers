@@ -80,8 +80,9 @@ export default function InteractiveMap({ isMobile }) {
     minZoom: 15,
     maxZoom: 22,
   });
-  const [viewState, setViewState] = useState(initialViewState);
+  // const [viewState, setViewState] = useState(initialViewState);
   const [viewStateBounds, setViewStateBounds] = useState({});
+  const [initialEntry, setInitialEntry] = useState(false);
 
   const [cursor, setCursor] = useState(null);
   const [bunkerCentroids, setBunkerCentroids] = useState([]);
@@ -218,6 +219,8 @@ export default function InteractiveMap({ isMobile }) {
       if (info.index !== selectedBunker) {
         setSelectedBunker(info.index);
       }
+    } else if (info) {
+      setSelectedBunker(info);
     } else {
       setSelectedBunker(null);
     }
@@ -253,16 +256,6 @@ export default function InteractiveMap({ isMobile }) {
       // get average of the lat and long for centroid
       centroid = [b.imageCentroid.longitude, b.imageCentroid.latitude];
 
-      setInitialViewState({
-        ...viewState,
-        zoom: 15,
-        pitch: 0,
-        transitionDuration: 1500,
-        transitionInterpolator: new FlyToInterpolator(),
-        longitude: centroid[0],
-        latitude: centroid[1],
-      });
-
       return new BitmapLayer({
         id: `msBunkers-${i}`,
         bounds: imageBounds,
@@ -271,28 +264,8 @@ export default function InteractiveMap({ isMobile }) {
         // maskId: "geofence",
         // maskByInstance: true,
         pickable: true,
-        onHover: (info) => handleBunkerHover(info),
+        onHover: () => handleBunkerHover(b),
       });
-
-      // [
-      //   // // add geojson layer from centroid
-      //   // new GeoJsonLayer({
-      //   //   id: `msBunkers-${i}-centroid`,
-      //   //   data: {
-      //   //     type: "Feature",
-      //   //     geometry: {
-      //   //       type: "Point",
-      //   //       coordinates: centroid,
-      //   //     },
-      //   //   },
-      //   //   stroked: true,
-      //   //   filled: true,
-      //   //   pointType: "circle",
-      //   //   getFillColor: [255, 255, 255, 255],
-      //   //   getPointRadius: 10,
-      //   //   pointRadiusMaxPixels: 10,
-      //   // }),
-      // ];
     });
 
     setMinesweeperBunkerLayers(layers);
@@ -316,7 +289,7 @@ export default function InteractiveMap({ isMobile }) {
     if (!selectedBunker || typeof selectedBunker !== "object") return;
 
     setInitialViewState({
-      ...viewState,
+      ...initialViewState,
       pitch: 0,
       zoom: 20,
       latitude: selectedBunker.imageCentroid.latitude,
@@ -415,19 +388,24 @@ export default function InteractiveMap({ isMobile }) {
     minesweeperBunkerLayers && minesweeperBunkerLayers,
   ];
 
-  const togglePlanView = useCallback((bool) => {
-    let vs;
-    if (bool) {
-      vs = { ...viewState, pitch: 0 };
-    } else {
-      vs = { ...viewState, pitch: 110 };
-    }
-    setInitialViewState({
-      ...vs,
-      transitionDuration: 1500,
-      transitionInterpolator: new FlyToInterpolator(),
-    });
-  }, []);
+  const togglePlanView = useCallback(
+    (bool) => {
+      if (initialEntry) return;
+      let vs;
+      if (bool) {
+        vs = { ...initialViewState, pitch: 0 };
+      } else {
+        vs = { ...initialViewState, pitch: 110 };
+      }
+      setInitialEntry(true);
+      setInitialViewState({
+        ...vs,
+        transitionDuration: 1500,
+        transitionInterpolator: new FlyToInterpolator(),
+      });
+    },
+    [initialEntry]
+  );
 
   return (
     <>
@@ -445,11 +423,11 @@ export default function InteractiveMap({ isMobile }) {
       <div className="border-effect">
         <div
           id="canvas-wrapper"
-          // onMouseEnter={(e) => {
-          //   if (!showCanvas) {
-          //     togglePlanView(true);
-          //   }
-          // }}
+          onMouseEnter={(e) => {
+            if (!showCanvas) {
+              togglePlanView(true);
+            }
+          }}
           // onMouseLeave={(e) => {
           //   togglePlanView(false);
           // }}
@@ -481,7 +459,7 @@ export default function InteractiveMap({ isMobile }) {
               if (viewState.pitch === 90) {
                 viewState.pitch = 89.999;
               }
-
+              // setViewState(viewState);
               return viewState;
             }}
             controller={{ inertia: 750, keyboard: true }}
@@ -498,7 +476,7 @@ export default function InteractiveMap({ isMobile }) {
               const a = 2000; // Adjust this base radius as needed
               const b = 0.25; // Adjust this rate to control the scaling sensitivity
 
-              const dynamicRadius = a * Math.exp(-b * viewState.zoom);
+              const dynamicRadius = a * Math.exp(-b * initialViewState.zoom);
 
               d = buffer(
                 {
@@ -530,6 +508,7 @@ export default function InteractiveMap({ isMobile }) {
           minesweeperBunkers={minesweeperBunkers}
           selectedBunker={selectedBunker}
           setSelectedBunker={setSelectedBunker}
+          setInitialEntry={setInitialEntry}
         />
       </div>
     </>

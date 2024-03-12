@@ -4,6 +4,7 @@ export default function BunkerGallery({
   minesweeperBunkers,
   selectedBunker,
   setSelectedBunker,
+  setInitialEntry,
 }) {
   return (
     <div id="bunker-gallery">
@@ -12,7 +13,10 @@ export default function BunkerGallery({
           <div
             key={index}
             className="bunker-gallery-item"
-            onClick={() => {
+            onClick={(e) => {
+              // scroll to top
+              window.scrollTo(0, 0);
+              setInitialEntry(true);
               setSelectedBunker(bunker);
             }}
           >
@@ -26,6 +30,8 @@ export default function BunkerGallery({
               }}
             />
             <p>{bunker.data.name}</p>
+            <p>{bunker.data.stockpile}</p>
+            <p>{bunker.data.fears}</p>
           </div>
         );
       })}
