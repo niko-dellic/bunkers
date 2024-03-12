@@ -30,8 +30,10 @@ function sketch(updateBounds, width, height) {
     p.draw = () => {
       if (!isDrawing) return;
 
-      const x = Math.floor(p.mouseX / interval) * interval;
-      const y = Math.floor(p.mouseY / interval) * interval;
+      let x = Math.floor(p.mouseX / interval) * interval;
+      let y = Math.floor(p.mouseY / interval) * interval;
+
+      if (x < 0 || x > width || y < 0 || y > height) return; // Prevent drawing outside the canvas
 
       // Base rectangle
       p.fill("#bdbdbd");
@@ -68,10 +70,31 @@ function sketch(updateBounds, width, height) {
     };
 
     p.mousePressed = () => {
-      isDrawing = true;
+      if (
+        p.mouseX < 0 ||
+        p.mouseX > width ||
+        p.mouseY < 0 ||
+        p.mouseY > height
+      ) {
+        return;
+      } else {
+        isDrawing = true;
+      }
     };
 
     p.mouseReleased = (e) => {
+      // check to see if the mouse was released outside of the canvas
+
+      if (
+        p.mouseX < 0 ||
+        p.mouseX > width ||
+        p.mouseY < 0 ||
+        p.mouseY > height
+      ) {
+        isDrawing = false;
+        return;
+      }
+
       isDrawing = false;
       // Adjust maxX and maxY to include the drawn rectangle's dimensions
       const bounds = {

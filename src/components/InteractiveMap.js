@@ -9,10 +9,11 @@ import { dotScreen } from "@luma.gl/shadertools";
 import { MaskExtension } from "@deck.gl/extensions";
 import { buffer } from "@turf/turf";
 import { BitmapLayer } from "@deck.gl/layers";
-import { bbox } from "@turf/turf";
+import { bbox, bboxPolygon, randomPoint } from "@turf/turf";
 import { ArcLayer } from "@deck.gl/layers";
 import { PathStyleExtension } from "@deck.gl/extensions";
 import { WebMercatorViewport } from "@deck.gl/core";
+import BunkerGallery from "./BunkerGallery";
 
 import * as d3 from "d3-delaunay";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -36,7 +37,7 @@ const postProcessEffect = new PostProcessEffect(dotScreen, {
   size: 3,
 });
 
-const maskRadius = 150;
+const maskRadius = 250;
 
 function convertToBounds(bounds, map) {
   const viewport = new WebMercatorViewport({
@@ -50,8 +51,8 @@ function convertToBounds(bounds, map) {
   });
 
   // Convert pixel bounds to geographical coordinates
-  const bottomLeft = viewport.unproject([bounds.minX, bounds.maxY]);
-  const topRight = viewport.unproject([bounds.maxX, bounds.minY]);
+  const bottomLeft = viewport?.unproject([bounds.minX, bounds.maxY]);
+  const topRight = viewport?.unproject([bounds.maxX, bounds.minY]);
 
   // bottomLeft and topRight now contain [longitude, latitude] arrays
   const geoBounds = {
@@ -79,9 +80,10 @@ export default function InteractiveMap({}) {
     minY: -Infinity,
     maxY: Infinity,
   });
-  const [projectedBounds, setProjectedBounds] = useState(null);
+  const [bounds, setBounds] = useState(null);
   const [p5Instance, setP5Instance] = useState(null);
   const [selectedBunker, setSelectedBunker] = useState(null);
+  const [flags, setFlags] = useState(null);
 
   useEffect(() => {
     document.addEventListener("contextmenu", (event) => event.preventDefault());
@@ -93,6 +95,22 @@ export default function InteractiveMap({}) {
       .then((data) => {
         setBunkerCentroids(data);
         // Create buffer and bbox for each point
+
+        // get the bounding box for all of the bunkers
+        const boundingBox = bboxPolygon(bbox(data));
+
+        // populate 50 randomn points within the bounding box and a random rotation
+        const randomPoints = randomPoint(100, {
+          bbox: boundingBox,
+        });
+
+        // set a random integer rotation for each point
+        randomPoints.features = randomPoints.features.map((feature) => {
+          feature.properties.rotation = Math.floor(Math.random() * 360);
+          return feature;
+        });
+        setFlags(randomPoints);
+
         const buff = data.features.map((feature) => {
           return buffer(feature, 0.0625, { units: "miles" });
         });
@@ -180,7 +198,7 @@ export default function InteractiveMap({}) {
     // Assuming bounds is your state variable with minX, maxX, minY, maxY
     if (canvasDrawingBounds.minX !== -Infinity) {
       const geoBounds = convertToBounds(canvasDrawingBounds, viewState);
-      setProjectedBounds(geoBounds);
+      setBounds(geoBounds);
       // Now you can use geoBounds for whatever you need
     }
   }, [canvasDrawingBounds]); // Depend on bounds state
@@ -248,6 +266,22 @@ export default function InteractiveMap({}) {
         extensions: [new MaskExtension()],
         maskId: "geofence",
       }),
+    new ScenegraphLayer({
+      id: "scenegraph-layer",
+      data: flags?.features,
+      scenegraph: "./assets/glb/flag.glb",
+      getPosition: (d) => {
+        return d.geometry.coordinates;
+      },
+      pickable: true,
+      //rotate random
+      getOrientation: (d) => [0, d.properties.rotation, 90],
+      sizeScale: 20,
+      _lighting: "pbr",
+      // _animations: {
+      //   "*": { speed: 5 },
+      // },
+    }),
 
     bunkerLayers && bunkerLayers,
   ];
@@ -260,12 +294,24 @@ export default function InteractiveMap({}) {
           setShowCanvas={setShowCanvas}
           p5Instance={p5Instance}
           canvasDrawingBounds={canvasDrawingBounds}
-          projectedBounds={projectedBounds}
+          bounds={bounds}
           selectedBunker={selectedBunker}
         />
       </div>
       <div className="border-effect">
         <div id="canvas-wrapper">
+          {/* {canvasDrawingBounds && (
+            <div
+              style={{
+                position: "absolute",
+                top: canvasDrawingBounds.minY,
+                left: canvasDrawingBounds.minX,
+                width: canvasDrawingBounds.maxX - canvasDrawingBounds.minX,
+                height: canvasDrawingBounds.maxY - canvasDrawingBounds.minY,
+                border: "5px inset red",
+              }}
+            />
+          )} */}
           <Canvas
             showCanvas={showCanvas}
             setShowCanvas={setShowCanvas}
@@ -311,6 +357,9 @@ export default function InteractiveMap({}) {
         /> */}
           </DeckGL>
         </div>
+      </div>
+      <div className="border-effect" id="bunkerGallery">
+        <BunkerGallery />
       </div>
     </>
   );
