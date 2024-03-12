@@ -1,14 +1,1 @@
-{
-  "bounds": {
-    "westLng": -71.09931417273341,
-    "southLat": 42.374011859737585,
-    "eastLng": -71.09916503793255,
-    "northLat": 42.374096242189644
-  },
-  "data": {
-    "name": "a",
-    "stockpile": "b",
-    "fears": "c",
-    "id": "bunker-d5d4b7f3-d335-4f8e-9985-6f2552c615f3"
-  }
-}
+{"bounds":{"westLng":-71.10257077891434,"southLat":42.37101590759128,"eastLng":-71.10038209635817,"northLat":42.37291822077446},"imageCentroid":{"longitude":-71.10147643763628,"latitude":42.37196707138491},"data":{"name":"ok","stockpile":"plz","fears":"work","id":"bunker-df9243e1-72a0-4094-b633-0275a4b21c4e"}}

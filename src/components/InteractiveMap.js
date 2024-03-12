@@ -13,7 +13,6 @@ import { buffer } from "@turf/turf";
 import { BitmapLayer } from "@deck.gl/layers";
 import { bbox, bboxPolygon, randomPoint } from "@turf/turf";
 import { ArcLayer } from "@deck.gl/layers";
-import { PathStyleExtension } from "@deck.gl/extensions";
 import { WebMercatorViewport } from "@deck.gl/core";
 import BunkerGallery from "./BunkerGallery";
 
@@ -43,10 +42,15 @@ function convertToBounds(bounds, viewState) {
     bearing: viewState.bearing,
   });
 
+  // get centroid from average of bounds
+  let centroid = [
+    (bounds.minX + bounds.maxX) / 2,
+    (bounds.minY + bounds.maxY) / 2,
+  ];
   // Convert pixel bounds to geographical coordinates
-  console.log(viewport);
   const bottomLeft = viewport?.unproject([bounds.minX, bounds.maxY]);
   const topRight = viewport?.unproject([bounds.maxX, bounds.minY]);
+  centroid = viewport?.unproject(centroid);
 
   // bottomLeft and topRight now contain [longitude, latitude] arrays
   const geoBounds = {
@@ -56,7 +60,12 @@ function convertToBounds(bounds, viewState) {
     northLat: topRight[1],
   };
 
-  return geoBounds;
+  const geoCentroid = {
+    longitude: centroid[0],
+    latitude: centroid[1],
+  };
+
+  return [geoBounds, geoCentroid];
 }
 
 export default function InteractiveMap({ isMobile }) {
@@ -69,13 +78,17 @@ export default function InteractiveMap({ isMobile }) {
     minPitch: 0,
     maxPitch: 179,
     minZoom: 15,
+    maxZoom: 22,
   });
   const [viewState, setViewState] = useState(initialViewState);
+  const [viewStateBounds, setViewStateBounds] = useState({});
+
   const [cursor, setCursor] = useState(null);
   const [bunkerCentroids, setBunkerCentroids] = useState([]);
   const [bunkers, setBunkers] = useState([]);
   const [bunkerLayers, setBunkerLayers] = useState(null);
   const [minesweeperBunkers, setMinesweeperBunkers] = useState([]);
+  const [minesweeperBunkerLayers, setMinesweeperBunkerLayers] = useState(null);
   const [network, setNetwork] = useState([]);
   const [showCanvas, setShowCanvas] = useState(false);
   const [canvasDrawingBounds, setCanvasDrawingBounds] = useState({
@@ -84,11 +97,15 @@ export default function InteractiveMap({ isMobile }) {
     minY: -Infinity,
     maxY: Infinity,
   });
+  // projected drawing bounds
   const [bounds, setBounds] = useState(null);
+  const [imageCentroid, setImageCentroid] = useState(null);
+
   const [p5Instance, setP5Instance] = useState(null);
   const [selectedBunker, setSelectedBunker] = useState(null);
+
+  // bonus 3d flags
   const [flags, setFlags] = useState(null);
-  const [viewStateBounds, setViewStateBounds] = useState({});
 
   useEffect(() => {
     document.addEventListener("contextmenu", (event) => event.preventDefault());
@@ -191,7 +208,7 @@ export default function InteractiveMap({ isMobile }) {
     fetch("./assets/json/bunkers-metadata.json")
       .then((res) => res.json())
       .then((data) => {
-        setMinesweeperBunkers(data);
+        setMinesweeperBunkers([data, data, data, data]);
       });
   }, []);
 
@@ -209,7 +226,7 @@ export default function InteractiveMap({ isMobile }) {
   useEffect(() => {
     const layers = bunkers.map((b, i) => {
       return new BitmapLayer({
-        id: `bunker-layer-${i}`,
+        id: `bunker-${i}`,
         bounds: b,
         image: "./assets/img/placeholder.png",
         extensions: [new MaskExtension()],
@@ -223,13 +240,91 @@ export default function InteractiveMap({ isMobile }) {
   }, [bunkers]);
 
   useEffect(() => {
+    let centroid;
+    const layers = minesweeperBunkers.map((b, i) => {
+      // flatten  "bounds": {} to an array
+      const imageBounds = [
+        b.bounds.westLng,
+        b.bounds.southLat,
+        b.bounds.eastLng,
+        b.bounds.northLat,
+      ];
+
+      // get average of the lat and long for centroid
+      centroid = [b.imageCentroid.longitude, b.imageCentroid.latitude];
+
+      setInitialViewState({
+        ...viewState,
+        zoom: 15,
+        pitch: 0,
+        transitionDuration: 1500,
+        transitionInterpolator: new FlyToInterpolator(),
+        longitude: centroid[0],
+        latitude: centroid[1],
+      });
+
+      return new BitmapLayer({
+        id: `msBunkers-${i}`,
+        bounds: imageBounds,
+        image: `./assets/img/${b.data.id}.png`,
+        extensions: [new MaskExtension()],
+        // maskId: "geofence",
+        // maskByInstance: true,
+        pickable: true,
+        onHover: (info) => handleBunkerHover(info),
+      });
+
+      // [
+      //   // // add geojson layer from centroid
+      //   // new GeoJsonLayer({
+      //   //   id: `msBunkers-${i}-centroid`,
+      //   //   data: {
+      //   //     type: "Feature",
+      //   //     geometry: {
+      //   //       type: "Point",
+      //   //       coordinates: centroid,
+      //   //     },
+      //   //   },
+      //   //   stroked: true,
+      //   //   filled: true,
+      //   //   pointType: "circle",
+      //   //   getFillColor: [255, 255, 255, 255],
+      //   //   getPointRadius: 10,
+      //   //   pointRadiusMaxPixels: 10,
+      //   // }),
+      // ];
+    });
+
+    setMinesweeperBunkerLayers(layers);
+  }, [minesweeperBunkers]);
+
+  useEffect(() => {
     // Assuming bounds is your state variable with minX, maxX, minY, maxY
     if (canvasDrawingBounds.minX !== -Infinity) {
-      const geoBounds = convertToBounds(canvasDrawingBounds, viewState);
+      const [geoBounds, centroid] = convertToBounds(
+        canvasDrawingBounds,
+        initialViewState
+      );
       setBounds(geoBounds);
+      setImageCentroid(centroid);
       // Now you can use geoBounds for whatever you need
     }
   }, [canvasDrawingBounds]); // Depend on bounds state
+
+  // useEffect to handle selectedBunker
+  useEffect(() => {
+    if (!selectedBunker || typeof selectedBunker !== "object") return;
+
+    setInitialViewState({
+      ...viewState,
+      pitch: 0,
+      zoom: 20,
+      latitude: selectedBunker.imageCentroid.latitude,
+      longitude: selectedBunker.imageCentroid.longitude,
+      transitionDuration: 1500,
+      transitionInterpolator: new FlyToInterpolator(),
+    });
+  }, [selectedBunker]);
 
   // layers array
   const layers = [
@@ -317,6 +412,7 @@ export default function InteractiveMap({ isMobile }) {
     }),
 
     !isMobile && bunkerLayers && bunkerLayers,
+    minesweeperBunkerLayers && minesweeperBunkerLayers,
   ];
 
   const togglePlanView = useCallback((bool) => {
@@ -342,17 +438,18 @@ export default function InteractiveMap({ isMobile }) {
           p5Instance={p5Instance}
           canvasDrawingBounds={canvasDrawingBounds}
           bounds={bounds}
+          imageCentroid={imageCentroid}
           selectedBunker={selectedBunker}
         />
       </div>
       <div className="border-effect">
         <div
           id="canvas-wrapper"
-          onMouseEnter={(e) => {
-            if (!showCanvas) {
-              togglePlanView(true);
-            }
-          }}
+          // onMouseEnter={(e) => {
+          //   if (!showCanvas) {
+          //     togglePlanView(true);
+          //   }
+          // }}
           // onMouseLeave={(e) => {
           //   togglePlanView(false);
           // }}
@@ -398,8 +495,8 @@ export default function InteractiveMap({ isMobile }) {
               let d;
 
               // Base radius and decay rate
-              const a = 200000; // Adjust this base radius as needed
-              const b = 0.45; // Adjust this rate to control the scaling sensitivity
+              const a = 2000; // Adjust this base radius as needed
+              const b = 0.25; // Adjust this rate to control the scaling sensitivity
 
               const dynamicRadius = a * Math.exp(-b * viewState.zoom);
 
@@ -428,8 +525,12 @@ export default function InteractiveMap({ isMobile }) {
           </DeckGL>
         </div>
       </div>
-      <div className="border-effect" id="bunkerGallery">
-        <BunkerGallery />
+      <div className="border-effect" id="bunker-gallery-wrapper">
+        <BunkerGallery
+          minesweeperBunkers={minesweeperBunkers}
+          selectedBunker={selectedBunker}
+          setSelectedBunker={setSelectedBunker}
+        />
       </div>
     </>
   );

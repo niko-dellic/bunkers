@@ -27,6 +27,7 @@ export default function UX({
   canvasDrawingBounds,
   bounds,
   selectedBunker,
+  imageCentroid,
 }) {
   // Save Canvas as PNG and form data as JSON
   const saveBunker = (data) => {
@@ -56,6 +57,7 @@ export default function UX({
       // Save JSON data
       const dataToSave = {
         bounds,
+        imageCentroid,
         data,
       };
       saveJSON(dataToSave, "bunkers-metadata");
