@@ -2,19 +2,32 @@
 
 import { useEffect, useState } from "react";
 import InteractiveMap from "../components/InteractiveMap";
+// import head
+import Head from "next/head";
 
 export default function Home() {
   const isMobile = useMobileDetect();
 
   return (
-    <main id={isMobile ? "main-mobile" : ""}>
-      <InteractiveMap isMobile={isMobile} />
-    </main>
+    <>
+      <Head>
+        <link
+          rel="icon"
+          href="/icon?<generated>"
+          type="image/<generated>"
+          sizes="<generated>"
+        />
+      </Head>
+      <main id={isMobile ? "main-mobile" : ""}>
+        {/* render interactive map once isMobile is not undefined */}
+        {isMobile !== undefined && <InteractiveMap isMobile={isMobile} />}
+      </main>
+    </>
   );
 }
 
 function useMobileDetect() {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(undefined);
 
   useEffect(() => {
     const userAgent = navigator.userAgent.toLowerCase();

@@ -15,7 +15,7 @@ const ReactP5Wrapper = dynamic(
 function sketch(updateBounds, width, height) {
   return (p) => {
     let isDrawing = false;
-    const interval = 12;
+    const interval = 20;
     const offset = 1.5;
     let minX = Infinity;
     let maxX = -Infinity;

@@ -322,9 +322,9 @@ export default function InteractiveMap({ isMobile }) {
   const togglePlanView = useCallback((bool) => {
     let vs;
     if (bool) {
-      vs = { ...viewState, pitch: 110 };
-    } else {
       vs = { ...viewState, pitch: 0 };
+    } else {
+      vs = { ...viewState, pitch: 110 };
     }
     setInitialViewState({
       ...vs,
@@ -353,9 +353,9 @@ export default function InteractiveMap({ isMobile }) {
               togglePlanView(true);
             }
           }}
-          onMouseLeave={(e) => {
-            togglePlanView(false);
-          }}
+          // onMouseLeave={(e) => {
+          //   togglePlanView(false);
+          // }}
         >
           <Canvas
             showCanvas={showCanvas}

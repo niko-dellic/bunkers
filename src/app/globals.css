@@ -3,7 +3,37 @@
   padding: 0;
   margin: 0;
   font-size: 11pt;
+  /* scrollbar-color: #c0c0c0 #7c7c7c */
+  /* scrollbar border */
+}
 
+/* This styles the scrollbar track (the part the thumb slides along) */
+::-webkit-scrollbar-track {
+  background: #b3b3b3;
+  /* Color of the "border" */
+}
+
+::-webkit-scrollbar-track:hover {
+  background: #c0c0c0;
+  /* Color on hover */
+}
+
+/* This styles the scrollbar thumb (the part that is draggable) */
+::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  /* Thumb color */
+  border: 5px solid white;
+  border-bottom: 5px solid #7c7c7c;
+  border-right: 5px solid #7c7c7c;
+  /* Simulated border around the thumb */
+}
+
+
+
+/* This styles the overall scrollbar */
+::-webkit-scrollbar {
+  width: 20px;
+  /* Width of the entire scrollbar */
 }
 
 html,
