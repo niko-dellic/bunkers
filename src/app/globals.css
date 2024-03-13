@@ -182,3 +182,9 @@ a {
 .mapboxgl-control-container {
   display: none;
 }
+
+#credits {
+  place-self: center;
+  grid-column: 1/-1;
+
+}
