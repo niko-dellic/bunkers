@@ -9,6 +9,7 @@ import { GeoJsonLayer } from "deck.gl";
 import { PostProcessEffect } from "deck.gl";
 import { dotScreen } from "@luma.gl/shadertools";
 import { MaskExtension } from "@deck.gl/extensions";
+import { distance, bearing } from "@turf/turf";
 import { buffer } from "@turf/turf";
 import { BitmapLayer } from "@deck.gl/layers";
 import { bbox, bboxPolygon, randomPoint } from "@turf/turf";
@@ -126,6 +127,16 @@ export default function InteractiveMap({ isMobile }) {
   }, []);
 
   useEffect(() => {
+    // set the map pitch to 0 if the canvas is shown
+    if (showCanvas) {
+      setInitialViewState(() => ({
+        ...viewState,
+        pitch: 0,
+      }));
+    }
+  }, [showCanvas]);
+
+  useEffect(() => {
     const layers = bunkers.map((b, i) => {
       return new BitmapLayer({
         id: `bunker-${i}`,
@@ -206,6 +217,77 @@ export default function InteractiveMap({ isMobile }) {
       // transitionInterpolator: new FlyToInterpolator(),
     });
   }, [selectedBunker]);
+
+  useEffect(() => {
+    if (
+      !bunkerCentroids ||
+      bunkerCentroids.length === 0 ||
+      bunkerCentroids.features.length === 0
+    )
+      return;
+
+    let currentIndex = 0;
+    let animationPaused = false; // New variable to control the pause state
+
+    const animateFlyThrough = () => {
+      if (
+        initialEntry ||
+        animationPaused ||
+        currentIndex >= bunkerCentroids.features.length
+      ) {
+        currentIndex = 0; // Optionally reset to start from the first point again when resuming
+        return; // Stop the animation if `initialEntry` is true or animation is paused
+      }
+
+      const currentFeature = bunkerCentroids.features[currentIndex];
+      const nextIndex = (currentIndex + 1) % bunkerCentroids.features.length;
+      const nextFeature = bunkerCentroids.features[nextIndex];
+
+      const currentCoordinates = currentFeature.geometry.coordinates;
+      const nextCoordinates = nextFeature.geometry.coordinates;
+
+      const dist = distance(currentCoordinates, nextCoordinates, {
+        units: "kilometers",
+      });
+      const bear = bearing(currentCoordinates, nextCoordinates);
+
+      setInitialViewState((prevState) => ({
+        ...prevState,
+        longitude: currentCoordinates[0],
+        latitude: currentCoordinates[1],
+        bearing: bear,
+        transitionDuration: dist * 3000,
+        transitionInterpolator: new FlyToInterpolator(),
+      }));
+
+      currentIndex++;
+      // 5 minute time out
+      const timeoutDuration = dist * 1000 + 5000; // 5 seconds after the transition ends
+      setTimeout(() => {
+        if (!initialEntry) {
+          // Check again before proceeding
+          animateFlyThrough();
+        }
+      }, timeoutDuration);
+    };
+
+    // Start the animation
+    animateFlyThrough();
+
+    // 5 minute timeout to restart the animation
+    const restartTimeout = setTimeout(() => {
+      animationPaused = true; // Pause the animation
+      setTimeout(() => {
+        // Wait for 5 minutes before restarting
+        animationPaused = false; // Resume the animation
+        animateFlyThrough(); // Restart the animation
+      }, 5 * 60 * 1000); // 5 minutes
+    }, 5 * 60 * 1000);
+
+    return () => {
+      clearTimeout(restartTimeout); // Clear the timeout if the component unmounts
+    };
+  }, [initialEntry, bunkerCentroids]); // React to changes in `initialEntry` and `bunkerCentroids`
 
   // layers array
   const layers = [
@@ -323,11 +405,11 @@ export default function InteractiveMap({ isMobile }) {
       <div className="border-effect">
         <div
           id="canvas-wrapper"
-          // onMouseEnter={(e) => {
-          //   if (!showCanvas) {
-          //     togglePlanView(true);
-          //   }
-          // }}
+          onMouseEnter={(e) => {
+            if (!showCanvas) {
+              togglePlanView(true);
+            }
+          }}
           // onMouseLeave={(e) => {
           //   togglePlanView(false);
           // }}
@@ -360,19 +442,8 @@ export default function InteractiveMap({ isMobile }) {
               if (viewState.pitch === 90) {
                 viewState.pitch = 89.999;
               }
-              // check if the viewState is undergoing a transition
-              if (viewState.transitionDuration || !initialEntry) {
-                return viewState;
-              }
 
-              // console.log(e);
-
-              // try to set the viewState
-              try {
-                setViewState(viewState);
-              } catch (error) {
-                // console.error(error);
-              }
+              setViewState(viewState);
 
               return viewState;
             }}
