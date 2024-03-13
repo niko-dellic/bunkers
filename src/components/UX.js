@@ -29,7 +29,7 @@ export default function UX({
   selectedBunker,
 }) {
   // Save Canvas as PNG and form data as JSON
-  const saveBunker = (data) => {
+  async function saveBunker(data){
     if (p5Instance) {
       const { minX, minY, maxX, maxY } = canvasDrawingBounds;
       const w = maxX - minX;
@@ -51,22 +51,36 @@ export default function UX({
 
       // Convert the off-screen canvas to a data URL and trigger download
       const dataURL = offScreenCanvas.toDataURL("image/png");
-      saveImage(dataURL, data.id);
+      // saveImage(dataURL, data.id);
 
       // Save JSON data
       const dataToSave = {
         bounds,
         data,
+        dataURL,
       };
-      saveJSON(dataToSave, "bunkers-metadata");
+      // saveJSON(dataToSave, "bunkers-metadata");
+
+      // Connect to backend to save in table/blob storage
+
+      const resp = await fetch('https://99f-bunker-api.azurewebsites.net/api/SaveToBlob', {
+        method: 'POST', // or 'PUT'
+        headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "DELETE, POST, GET, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dataToSave),
+      })
 
       setShowCanvas(false); // Optionally hide canvas after saving
     }
   };
 
   // Function to update form data state
-  const handleFormData = (data) => {
-    saveBunker(data);
+  async function handleFormData(data){
+    await saveBunker(data);
   };
 
   return (
