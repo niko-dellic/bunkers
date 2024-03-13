@@ -27,6 +27,7 @@ export default function UX({
   canvasDrawingBounds,
   bounds,
   selectedBunker,
+  imageViewState,
 }) {
   // Save Canvas as PNG and form data as JSON
   async function saveBunker(data){
@@ -53,9 +54,12 @@ export default function UX({
       const dataURL = offScreenCanvas.toDataURL("image/png");
       // saveImage(dataURL, data.id);
 
+      const view = imageViewState;
+
       // Save JSON data
       const dataToSave = {
         bounds,
+        view,
         data,
         dataURL,
       };

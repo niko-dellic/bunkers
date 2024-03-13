@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import DeckGL from "@deck.gl/react";
+// import flyto interpolator
+import { FlyToInterpolator } from "@deck.gl/core";
 import { Map } from "react-map-gl";
 import { GeoJsonLayer, ScenegraphLayer } from "deck.gl";
 import { PostProcessEffect } from "deck.gl";
@@ -11,7 +13,6 @@ import { buffer } from "@turf/turf";
 import { BitmapLayer } from "@deck.gl/layers";
 import { bbox, bboxPolygon, randomPoint } from "@turf/turf";
 import { ArcLayer } from "@deck.gl/layers";
-import { PathStyleExtension } from "@deck.gl/extensions";
 import { WebMercatorViewport } from "@deck.gl/core";
 import BunkerGallery from "./BunkerGallery";
 
@@ -22,38 +23,34 @@ import Canvas from "./Canvas";
 
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
-const INITIAL_VIEW_STATE = {
-  // boston
-  longitude: -71.10411036688859,
-  latitude: 42.37510184675266,
-  zoom: 14.5,
-  // pitch: 50,
-  // bearing: 30,
-  minPitch: 0,
-  maxPitch: 179,
-};
-
 const postProcessEffect = new PostProcessEffect(dotScreen, {
   size: 3,
 });
 
-const maskRadius = 250;
-const numFlags = 200;
+const numFlags = 350;
 
-function convertToBounds(bounds, map) {
+function convertToBounds(bounds, viewState) {
+  if (!viewState || !bounds) return;
+
   const viewport = new WebMercatorViewport({
-    width: map.width,
-    height: map.height,
-    latitude: map.latitude,
-    longitude: map.longitude,
-    zoom: map.zoom,
-    pitch: map.pitch,
-    bearing: map.bearing,
+    width: viewState.width,
+    height: viewState.height,
+    latitude: viewState.latitude,
+    longitude: viewState.longitude,
+    zoom: viewState.zoom,
+    pitch: viewState.pitch,
+    bearing: viewState.bearing,
   });
 
+  // get centroid from average of bounds
+  let centroid = [
+    (bounds.minX + bounds.maxX) / 2,
+    (bounds.minY + bounds.maxY) / 2,
+  ];
   // Convert pixel bounds to geographical coordinates
   const bottomLeft = viewport?.unproject([bounds.minX, bounds.maxY]);
   const topRight = viewport?.unproject([bounds.maxX, bounds.minY]);
+  centroid = viewport?.unproject(centroid);
 
   // bottomLeft and topRight now contain [longitude, latitude] arrays
   const geoBounds = {
@@ -63,16 +60,37 @@ function convertToBounds(bounds, map) {
     northLat: topRight[1],
   };
 
-  return geoBounds;
+  const viewProps = {
+    longitude: centroid[0],
+    latitude: centroid[1],
+    zoom: viewState.zoom,
+  };
+
+  return [geoBounds, viewProps];
 }
 
-export default function InteractiveMap({}) {
-  const [viewState, setViewState] = useState(INITIAL_VIEW_STATE);
+export default function InteractiveMap({ isMobile }) {
+  const [initialViewState, setInitialViewState] = useState({
+    // boston
+    longitude: -71.10411036688859,
+    latitude: 42.37510184675266,
+    zoom: 16,
+    pitch: 100,
+    minPitch: 0,
+    maxPitch: 179,
+    minZoom: 15,
+    maxZoom: 22,
+  });
+  const [viewState, setViewState] = useState(initialViewState);
+  const [viewStateBounds, setViewStateBounds] = useState({});
+  const [initialEntry, setInitialEntry] = useState(false);
+
   const [cursor, setCursor] = useState(null);
-  const [glb, setGlb] = useState(null);
   const [bunkerCentroids, setBunkerCentroids] = useState([]);
   const [bunkers, setBunkers] = useState([]);
   const [bunkerLayers, setBunkerLayers] = useState(null);
+  const [minesweeperBunkers, setMinesweeperBunkers] = useState([]);
+  const [minesweeperBunkerLayers, setMinesweeperBunkerLayers] = useState(null);
   const [network, setNetwork] = useState([]);
   const [showCanvas, setShowCanvas] = useState(false);
   const [canvasDrawingBounds, setCanvasDrawingBounds] = useState({
@@ -81,9 +99,14 @@ export default function InteractiveMap({}) {
     minY: -Infinity,
     maxY: Infinity,
   });
+  // projected drawing bounds
   const [bounds, setBounds] = useState(null);
+  const [imageViewState, setImageViewState] = useState(null);
+
   const [p5Instance, setP5Instance] = useState(null);
   const [selectedBunker, setSelectedBunker] = useState(null);
+
+  // bonus 3d flags
   const [flags, setFlags] = useState(null);
 
   useEffect(() => {
@@ -98,7 +121,8 @@ export default function InteractiveMap({}) {
         // Create buffer and bbox for each point
 
         // get the bounding box for all of the bunkers
-        const boundingBox = bboxPolygon(bbox(data));
+        const dataBounds = bbox(data);
+        const boundingBox = bboxPolygon(dataBounds);
 
         // populate 50 randomn points within the bounding box and a random rotation
         const randomPoints = randomPoint(numFlags, {
@@ -116,7 +140,10 @@ export default function InteractiveMap({}) {
           return buffer(feature, 0.0125, { units: "miles" });
         });
         const b = buff.map((b) => bbox(b));
-        setBunkers(b);
+
+        if (!isMobile) {
+          setBunkers(b);
+        }
 
         // Create a unique id for each feature
         data.features = data.features.map((feature, index) => {
@@ -169,66 +196,129 @@ export default function InteractiveMap({}) {
         }
 
         // Now you can use `edgesGeoJSON` as the data source for a map layer
-        setNetwork(edgesGeoJSON); // Assuming you have a state `network` to hold this data
+        setNetwork(edgesGeoJSON);
+
+        // set viewStateBounds from bounding box of the data
+        setViewStateBounds({
+          westLng: dataBounds[0],
+          southLat: dataBounds[1],
+          eastLng: dataBounds[2],
+          northLat: dataBounds[3],
+        });
+      });
+
+    fetch("./assets/json/bunkers-metadata.json")
+      .then((res) => res.json())
+      .then((data) => {
+        setMinesweeperBunkers([data, data, data, data]);
       });
   }, []);
+
+  // create function to handle bunker hover
+  const handleBunkerTrigger = (info) => {
+    if (info.layer) {
+      if (info.index !== selectedBunker) {
+        setSelectedBunker(info.index);
+      }
+    } else if (info) {
+      setSelectedBunker(info);
+    } else {
+      setSelectedBunker(null);
+    }
+  };
 
   useEffect(() => {
     const layers = bunkers.map((b, i) => {
       return new BitmapLayer({
-        id: `bunker-layer-${i}`,
+        id: `bunker-${i}`,
         bounds: b,
-        image: "./assets/img/bunker.png",
+        image: "./assets/img/placeholder.png",
         extensions: [new MaskExtension()],
         maskId: "geofence",
         maskByInstance: true,
         pickable: true,
-        onHover: (info) => {
-          if (info.layer) {
-            if (info.index !== selectedBunker) {
-              setSelectedBunker(i);
-            }
-          }
-        },
+        onHover: (info) => handleBunkerTrigger(info),
       });
     });
     setBunkerLayers(layers);
   }, [bunkers]);
 
   useEffect(() => {
+    const layers = minesweeperBunkers.map((b, i) => {
+      // flatten  "bounds": {} to an array
+      const imageBounds = [
+        b.bounds.westLng,
+        b.bounds.southLat,
+        b.bounds.eastLng,
+        b.bounds.northLat,
+      ];
+
+      return new BitmapLayer({
+        id: `msBunkers-${i}`,
+        bounds: imageBounds,
+        image: `./assets/img/${b.data.id}.png`,
+        extensions: [new MaskExtension()],
+        // maskId: "geofence",
+        // maskByInstance: true,
+        pickable: true,
+        onClick: () => handleBunkerTrigger(b),
+      });
+    });
+
+    setMinesweeperBunkerLayers(layers);
+  }, [minesweeperBunkers]);
+
+  useEffect(() => {
     // Assuming bounds is your state variable with minX, maxX, minY, maxY
     if (canvasDrawingBounds.minX !== -Infinity) {
-      const geoBounds = convertToBounds(canvasDrawingBounds, viewState);
+      const [geoBounds, vstate] = convertToBounds(
+        canvasDrawingBounds,
+        viewState
+      );
       setBounds(geoBounds);
+      setImageViewState(vstate);
       // Now you can use geoBounds for whatever you need
     }
   }, [canvasDrawingBounds]); // Depend on bounds state
 
+  // useEffect to handle selectedBunker
+  useEffect(() => {
+    if (!selectedBunker || typeof selectedBunker !== "object") return;
+
+    setInitialViewState({
+      ...viewState,
+      pitch: 0,
+      zoom: selectedBunker.view.zoom,
+      latitude: selectedBunker.view.latitude,
+      longitude: selectedBunker.view.longitude,
+      transitionDuration: 1500,
+      transitionInterpolator: new FlyToInterpolator(),
+    });
+  }, [selectedBunker]);
+
   // layers array
   const layers = [
     !showCanvas &&
+      !isMobile &&
       new GeoJsonLayer({
         id: "geofence",
         data: cursor,
-        pointType: "circle",
         getFillColor: (d) => [255, 0, 0],
         operation: "mask",
-        getPointRadius: maskRadius,
       }),
     !showCanvas &&
       new GeoJsonLayer({
         id: "geofence-display",
         data: cursor,
-        pointType: "circle",
         stroked: true,
         filled: false,
-        getPointRadius: maskRadius,
-        getFillColor: [255, 0, 0, 50],
         getLineColor: [255, 0, 0, 255],
-        getLineWidth: 3,
+        getLineWidth: 2,
+        // pixels
+        lineWidthUnits: "pixels",
       }),
     new GeoJsonLayer({
-      id: "geojson-layer",
+      id: "points-layer",
       data: bunkerCentroids,
       stroked: false,
       filled: true,
@@ -236,9 +326,17 @@ export default function InteractiveMap({}) {
       getFillColor: [255, 255, 255, 175],
       getPointRadius: 10,
       pointRadiusMaxPixels: 10,
-      extensions: [new MaskExtension()],
-      maskId: "geofence",
-      maskInverted: true,
+      pickable: isMobile ? true : false,
+      autoHighlight: true,
+      autoHighlightColor: [0, 255, 255],
+      onHover: (info) => handleBunkerTrigger(info),
+      ...(isMobile
+        ? {}
+        : {
+            extensions: [new MaskExtension()],
+            maskId: "geofence",
+            maskInverted: true,
+          }),
     }),
     new GeoJsonLayer({
       id: "network-layer",
@@ -246,11 +344,10 @@ export default function InteractiveMap({}) {
       stroked: true,
       lineWidthUnits: "pixels",
       getLineColor: [255, 255, 255, 100],
-      getLineWidth: 3,
-      extensions: [new MaskExtension(), new PathStyleExtension()],
+      getLineWidth: 2,
+      extensions: [new MaskExtension()],
       maskId: "geofence",
       maskInverted: true,
-      getDashArray: [1, 60],
     }),
     !showCanvas &&
       new ArcLayer({
@@ -263,7 +360,7 @@ export default function InteractiveMap({}) {
         getSourceColor: [255, 255, 255, 200],
         getTargetColor: [255, 255, 255, 200],
         getWidth: 2,
-        getHeight: 0.5,
+        getHeight: -0.33,
         extensions: [new MaskExtension()],
         maskId: "geofence",
       }),
@@ -284,8 +381,28 @@ export default function InteractiveMap({}) {
       // },
     }),
 
-    bunkerLayers && bunkerLayers,
+    !isMobile && bunkerLayers && bunkerLayers,
+    minesweeperBunkerLayers && minesweeperBunkerLayers,
   ];
+
+  const togglePlanView = useCallback(
+    (bool) => {
+      if (initialEntry) return;
+      let vs;
+      if (bool) {
+        vs = { ...viewState, pitch: 0 };
+      } else {
+        vs = { ...viewState, pitch: 110 };
+      }
+      setInitialEntry(true);
+      setInitialViewState({
+        ...vs,
+        transitionDuration: 1500,
+        transitionInterpolator: new FlyToInterpolator(),
+      });
+    },
+    [initialEntry]
+  );
 
   return (
     <>
@@ -296,23 +413,22 @@ export default function InteractiveMap({}) {
           p5Instance={p5Instance}
           canvasDrawingBounds={canvasDrawingBounds}
           bounds={bounds}
+          imageViewState={imageViewState}
           selectedBunker={selectedBunker}
         />
       </div>
       <div className="border-effect">
-        <div id="canvas-wrapper">
-          {/* {canvasDrawingBounds && (
-            <div
-              style={{
-                position: "absolute",
-                top: canvasDrawingBounds.minY,
-                left: canvasDrawingBounds.minX,
-                width: canvasDrawingBounds.maxX - canvasDrawingBounds.minX,
-                height: canvasDrawingBounds.maxY - canvasDrawingBounds.minY,
-                border: "5px inset red",
-              }}
-            />
-          )} */}
+        <div
+          id="canvas-wrapper"
+          onMouseEnter={(e) => {
+            if (!showCanvas) {
+              togglePlanView(true);
+            }
+          }}
+          // onMouseLeave={(e) => {
+          //   togglePlanView(false);
+          // }}
+        >
           <Canvas
             showCanvas={showCanvas}
             setShowCanvas={setShowCanvas}
@@ -322,18 +438,56 @@ export default function InteractiveMap({}) {
             setP5Instance={setP5Instance}
           />
           <DeckGL
-            initialViewState={INITIAL_VIEW_STATE}
-            onViewStateChange={(e) => setViewState(e.viewState)}
-            controller={{ inertia: 750 }}
+            initialViewState={initialViewState}
+            onViewStateChange={(e) => {
+              const viewState = e.viewState;
+              //check if viewStateBounds is an empty object
+              if (Object.keys(viewStateBounds).length === 0) return viewState;
+
+              viewState.longitude = Math.min(
+                viewStateBounds.eastLng,
+                Math.max(viewStateBounds.westLng, viewState.longitude)
+              );
+              viewState.latitude = Math.min(
+                viewStateBounds.northLat,
+                Math.max(viewStateBounds.southLat, viewState.latitude)
+              );
+
+              // if pitch 90, set to 89.999
+              if (viewState.pitch === 90) {
+                viewState.pitch = 89.999;
+              }
+              // check if the viewState is undergoing a transition
+              if (viewState.transitionDuration || !initialEntry) {
+                return viewState;
+              }
+
+              // console.log(e);
+
+              // try to set the viewState
+              try {
+                setViewState(viewState);
+              } catch (error) {
+                // console.error(error);
+              }
+
+              return viewState;
+            }}
+            controller={{ inertia: 750, keyboard: true }}
             layers={layers}
             autoTooltip={true}
             autoResize={true}
             effects={[postProcessEffect]}
             //on mouse move, set cursor to the event
             onHover={(event) => {
-              // create a point buffer
               if (event.coordinate === undefined) return;
               let d;
+
+              // Base radius and decay rate
+              const a = 2000; // Adjust this base radius as needed
+              const b = 0.25; // Adjust this rate to control the scaling sensitivity
+
+              const dynamicRadius = a * Math.exp(-b * viewState.zoom);
 
               d = buffer(
                 {
@@ -343,7 +497,8 @@ export default function InteractiveMap({}) {
                     coordinates: event.coordinate,
                   },
                 },
-                maskRadius,
+                // mask radius divided by square root of viewstate.zoom
+                dynamicRadius,
                 { units: "meters" }
               );
 
@@ -359,8 +514,13 @@ export default function InteractiveMap({}) {
           </DeckGL>
         </div>
       </div>
-      <div className="border-effect" id="bunkerGallery">
-        <BunkerGallery />
+      <div className="border-effect" id="bunker-gallery-wrapper">
+        <BunkerGallery
+          minesweeperBunkers={minesweeperBunkers}
+          selectedBunker={selectedBunker}
+          setSelectedBunker={setSelectedBunker}
+          setInitialEntry={setInitialEntry}
+        />
       </div>
     </>
   );
