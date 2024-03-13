@@ -7,18 +7,25 @@ import { FlyToInterpolator } from "@deck.gl/core";
 import { Map } from "react-map-gl";
 import { GeoJsonLayer } from "deck.gl";
 import { PostProcessEffect } from "deck.gl";
-import { dotScreen } from "@luma.gl/shadertools";
+import {
+  dotScreen,
+  edgeWork,
+  noise,
+  vignette,
+  zoomBlur,
+  bulgePinch,
+} from "@luma.gl/shadertools";
 import { MaskExtension } from "@deck.gl/extensions";
-import { distance, bearing } from "@turf/turf";
 import { buffer } from "@turf/turf";
 import { BitmapLayer } from "@deck.gl/layers";
-import { bbox, bboxPolygon, randomPoint } from "@turf/turf";
+import { bbox } from "@turf/turf";
 import ArcLayer from "./layers/ArcLayer";
 import MeshLayer from "./layers/ScenegraphLayer";
 import BunkerGallery from "./BunkerGallery";
 import "mapbox-gl/dist/mapbox-gl.css";
 import UX from "./UX";
 import Canvas from "./Canvas";
+import CanvasAnimation from "./CanvasAnimation";
 
 import {
   convertToBounds,
@@ -30,8 +37,40 @@ import {
 
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
-const postProcessEffect = new PostProcessEffect(dotScreen, {
+const _ascii = new PostProcessEffect(dotScreen, {
   size: 3,
+});
+
+const _edges = new PostProcessEffect(edgeWork, {
+  intensity: 1,
+  threshold: 0.25,
+  color: [0, 0, 0],
+  background: [0, 0, 0, 0],
+});
+
+const _noise = new PostProcessEffect(noise, {
+  // opacity: 0.5,
+  speed: 0.25,
+  strength: 3,
+});
+
+const _vignette = new PostProcessEffect(vignette, {
+  offset: 0.125,
+  darkness: 0.0625,
+  intensity: 0.1,
+});
+
+const _zoomBlur = new PostProcessEffect(zoomBlur, {
+  strength: 0.0125,
+  radius: 1,
+  center: [0.5, 0.5],
+});
+
+const _buldgePinch = new PostProcessEffect(bulgePinch, {
+  center: [0.5, 0.5],
+  radius: 1,
+  strength: 1,
+  aspect: 1,
 });
 
 const numFlags = 350;
@@ -218,76 +257,19 @@ export default function InteractiveMap({ isMobile }) {
     });
   }, [selectedBunker]);
 
-  useEffect(() => {
-    if (
-      !bunkerCentroids ||
-      bunkerCentroids.length === 0 ||
-      bunkerCentroids.features.length === 0
-    )
-      return;
-
-    let currentIndex = 0;
-    let animationPaused = false; // New variable to control the pause state
-
-    const animateFlyThrough = () => {
-      if (
-        initialEntry ||
-        animationPaused ||
-        currentIndex >= bunkerCentroids.features.length
-      ) {
-        currentIndex = 0; // Optionally reset to start from the first point again when resuming
-        return; // Stop the animation if `initialEntry` is true or animation is paused
-      }
-
-      const currentFeature = bunkerCentroids.features[currentIndex];
-      const nextIndex = (currentIndex + 1) % bunkerCentroids.features.length;
-      const nextFeature = bunkerCentroids.features[nextIndex];
-
-      const currentCoordinates = currentFeature.geometry.coordinates;
-      const nextCoordinates = nextFeature.geometry.coordinates;
-
-      const dist = distance(currentCoordinates, nextCoordinates, {
-        units: "kilometers",
-      });
-      const bear = bearing(currentCoordinates, nextCoordinates);
-
-      setInitialViewState((prevState) => ({
-        ...prevState,
-        longitude: currentCoordinates[0],
-        latitude: currentCoordinates[1],
-        bearing: bear,
-        transitionDuration: dist * 3000,
-        transitionInterpolator: new FlyToInterpolator(),
-      }));
-
-      currentIndex++;
-      // 5 minute time out
-      const timeoutDuration = dist * 1000 + 5000; // 5 seconds after the transition ends
-      setTimeout(() => {
-        if (!initialEntry) {
-          // Check again before proceeding
-          animateFlyThrough();
-        }
-      }, timeoutDuration);
-    };
-
-    // Start the animation
-    animateFlyThrough();
-
-    // 5 minute timeout to restart the animation
-    const restartTimeout = setTimeout(() => {
-      animationPaused = true; // Pause the animation
-      setTimeout(() => {
-        // Wait for 5 minutes before restarting
-        animationPaused = false; // Resume the animation
-        animateFlyThrough(); // Restart the animation
-      }, 5 * 60 * 1000); // 5 minutes
-    }, 5 * 60 * 1000);
-
-    return () => {
-      clearTimeout(restartTimeout); // Clear the timeout if the component unmounts
-    };
-  }, [initialEntry, bunkerCentroids]); // React to changes in `initialEntry` and `bunkerCentroids`
+  // useEffect(() => {
+  //   if (bunkerCentroids && bunkerCentroids.features?.length > 0) {
+  //     const cleanupAnimation = CanvasAnimation({
+  //       bunkerCentroids,
+  //       initialEntry,
+  //       setInitialViewState,
+  //     });
+  //     // Cleanup function to stop the animation if the component unmounts
+  //     return () => {
+  //       cleanupAnimation();
+  //     };
+  //   }
+  // }, [initialEntry, setInitialEntry, bunkerCentroids]); // React to changes in `initialEntry` and `bunkerCentroids`
 
   // layers array
   const layers = [
@@ -355,17 +337,53 @@ export default function InteractiveMap({ isMobile }) {
         {
           type: "Feature",
           geometry: {
-            coordinates: [-71.0922, 42.3588],
+            coordinates: [-71.08749276834116, 42.3606773116409],
           },
           properties: {
             rotation: -65,
           },
         },
       ],
-      scenegraphUrl: "./assets/glb/mediaLab.glb",
+      scenegraphUrl: "./assets/glb/ml-small.glb",
+      scale: 1,
+    }),
+    MeshLayer({
+      id: "bad-boys",
+      data: [
+        {
+          type: "Feature",
+          geometry: {
+            coordinates: [-71.10391548752061, 42.37657987930491],
+          },
+          properties: {
+            rotation: 35,
+            text: `
+            [X: 42.3765 Y: -71.1039] \r\n
+            ALERT! ALERT! ALERT! AFTER PARTY ALERT!
+            71 BEACON ST APT 3 BZ 9048`,
+          },
+        },
+      ],
+      scenegraphUrl: "./assets/glb/badboys.glb",
+      scale: 2,
+      hover: true,
+    }),
+    MeshLayer({
+      id: "magnus",
+      data: [
+        {
+          type: "Feature",
+          geometry: {
+            coordinates: [-71.10370176761859, 42.37758970601866],
+          },
+          properties: {
+            rotation: 40,
+          },
+        },
+      ],
+      scenegraphUrl: "./assets/glb/magnus.glb",
       scale: 2,
     }),
-
     !isMobile && bunkerLayers && bunkerLayers,
     minesweeperBunkerLayers && minesweeperBunkerLayers,
   ];
@@ -450,7 +468,7 @@ export default function InteractiveMap({ isMobile }) {
             controller={{ inertia: 750, keyboard: true }}
             layers={layers}
             autoResize={true}
-            effects={[postProcessEffect]}
+            effects={[_ascii, _noise, _buldgePinch]}
             //on mouse move, set cursor to the event
             onHover={(event) => {
               if (event.coordinate === undefined) return;
@@ -476,6 +494,21 @@ export default function InteractiveMap({ isMobile }) {
               );
 
               setCursor(d);
+            }}
+            autoTooltip={true}
+            // set content for auto tooltip
+            getTooltip={({ object }) => {
+              if (!object) return null;
+              return {
+                html: `<div class="border-effect">${object.properties.text}</div>`,
+                style: {
+                  backgroundColor: "#bdbdbd",
+                  color: "black",
+                  border: "5px outset white",
+                  width: "300px",
+                  height: "auto",
+                },
+              };
             }}
           >
             <Map
