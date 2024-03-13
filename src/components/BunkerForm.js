@@ -21,6 +21,7 @@ export default function BunkerForm({ onFormDataChange }) {
         <input type="text" name="stockpile" />{" "}
         {/* Corrected the name attribute */}
       </label>
+
       <label>
         How you spend your time
         <textarea name="fears" style={{ resize: "none" }} />

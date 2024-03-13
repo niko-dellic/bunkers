@@ -30,7 +30,7 @@ export default function UX({
   imageViewState,
 }) {
   // Save Canvas as PNG and form data as JSON
-  async function saveBunker(data){
+  async function saveBunker(data) {
     if (p5Instance) {
       const { minX, minY, maxX, maxY } = canvasDrawingBounds;
       const w = maxX - minX;
@@ -67,25 +67,29 @@ export default function UX({
 
       // Connect to backend to save in table/blob storage
 
-      const resp = await fetch('https://99f-bunker-api.azurewebsites.net/api/SaveToBlob', {
-        method: 'POST', // or 'PUT'
-        headers: {
+      const resp = await fetch(
+        "https://99f-bunker-api.azurewebsites.net/api/SaveToBlob",
+        {
+          method: "POST", // or 'PUT'
+          headers: {
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "DELETE, POST, GET, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(dataToSave),
-      })
+            "Access-Control-Allow-Headers":
+              "Content-Type, Authorization, X-Requested-With",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(dataToSave),
+        }
+      );
 
       setShowCanvas(false); // Optionally hide canvas after saving
     }
-  };
+  }
 
   // Function to update form data state
-  async function handleFormData(data){
+  async function handleFormData(data) {
     await saveBunker(data);
-  };
+  }
 
   return (
     <div id="controls-wrapper">
@@ -111,6 +115,7 @@ export default function UX({
       </div>
 
       {showCanvas && <BunkerForm onFormDataChange={handleFormData} />}
+
       {!showCanvas && selectedBunker && (
         <DisplayBunkerProperties selectedBunker={selectedBunker} />
       )}

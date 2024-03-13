@@ -21,17 +21,17 @@ export default function BunkerGallery({
             }}
           >
             <Image
-              src={`/assets/img/${bunker.data.id}.png`}
-              alt={bunker.data.name}
+              src={bunker.ImageURL}
+              alt={bunker.Data["name"] || `Bunker ${index + 1}`}
               sizes="500px"
               fill
               style={{
                 objectFit: "contain",
               }}
             />
-            <p>{bunker.data.name}</p>
-            <p>{bunker.data.stockpile}</p>
-            <p>{bunker.data.fears}</p>
+            <p>{bunker.Data.name}</p>
+            <p>{bunker.Data.stockpile}</p>
+            <p>{bunker.Data.fears}</p>
           </div>
         );
       })}

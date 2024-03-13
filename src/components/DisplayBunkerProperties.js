@@ -1,7 +1,7 @@
 export default function DisplayBunkerProperties({ selectedBunker }) {
   if (typeof selectedBunker === "object") {
     // if type is object
-    const data = selectedBunker.data;
+    const data = selectedBunker;
     // drop id
     if (data) {
       delete data.id;
