@@ -146,24 +146,28 @@ export default function InteractiveMap({ isMobile }) {
 
   useEffect(() => {
     const layers = minesweeperBunkers.map((b, i) => {
-      // flatten  "bounds": {} to an array
-      const imageBounds = [
-        b.Bounds.westLng,
-        b.Bounds.southLat,
-        b.Bounds.eastLng,
-        b.Bounds.northLat,
-      ];
+      try {
+        let imageBounds = JSON.parse(b.Bounds);
+        imageBounds = [
+          imageBounds.westLng,
+          imageBounds.southLat,
+          imageBounds.eastLng,
+          imageBounds.northLat,
+        ];
 
-      // return new BitmapLayer({
-      //   id: `msBunkers-${i}`,
-      //   bounds: imageBounds,
-      //   image: b.ImageURL,
-      //   extensions: [new MaskExtension()],
-      //   // maskId: "geofence",
-      //   // maskByInstance: true,
-      //   pickable: true,
-      //   onClick: () => handleBunkerTrigger(b),
-      // });
+        return new BitmapLayer({
+          id: `msBunkers-${i}`,
+          bounds: imageBounds,
+          image: b.ImageURL,
+          extensions: [new MaskExtension()],
+          maskId: "geofence",
+          maskByInstance: true,
+          pickable: true,
+          onClick: () => handleBunkerTrigger(b),
+        });
+      } catch (error) {
+        console.error("Failed to load image:", error);
+      }
     });
 
     setMinesweeperBunkerLayers(layers);
@@ -190,15 +194,16 @@ export default function InteractiveMap({ isMobile }) {
       !selectedBunker.View
     )
       return;
+    const view = JSON.parse(selectedBunker.View);
 
     setInitialViewState({
       ...viewState,
       pitch: 0,
-      zoom: selectedBunker.View.zoom,
-      latitude: selectedBunker.View.latitude,
-      longitude: selectedBunker.View.longitude,
-      transitionDuration: 1500,
-      transitionInterpolator: new FlyToInterpolator(),
+      zoom: view.zoom,
+      latitude: view.latitude,
+      longitude: view.longitude,
+      // transitionDuration: 1500,
+      // transitionInterpolator: new FlyToInterpolator(),
     });
   }, [selectedBunker]);
 
@@ -268,7 +273,7 @@ export default function InteractiveMap({ isMobile }) {
         {
           type: "Feature",
           geometry: {
-            coordinates: [-71.0925, 42.3601],
+            coordinates: [-71.0922, 42.3588],
           },
           properties: {
             rotation: -65,
