@@ -5,12 +5,7 @@ import DeckGL from "@deck.gl/react";
 // import flyto interpolator
 import { Map } from "react-map-gl";
 import { GeoJsonLayer, PostProcessEffect } from "deck.gl";
-import {
-  dotScreen,
-  colorHalftone,
-  noise,
-  hueSaturation,
-} from "@luma.gl/shadertools";
+import { dotScreen, noise } from "@luma.gl/shadertools";
 import { MaskExtension } from "@deck.gl/extensions";
 import { buffer } from "@turf/turf";
 import { BitmapLayer } from "@deck.gl/layers";
@@ -42,20 +37,12 @@ const _noise = new PostProcessEffect(noise, {
 export default function InteractiveMap({
   isMobile,
   showCanvas,
-  setShowCanvas,
-  p5Instance,
-  canvasDrawingBounds,
-  setCanvasDrawingBounds,
   selectedBunker,
   setMinesweeperBunkers,
   minesweeperBunkers,
   triggerFetch,
-  setP5Instance,
   setSelectedBunker,
   initialEntry,
-  setInitialEntry,
-  setBounds,
-  setImageViewState,
   viewState,
   setViewState,
 }) {
@@ -205,19 +192,6 @@ export default function InteractiveMap({
 
     setMinesweeperBunkerLayers(layers);
   }, [minesweeperBunkers]);
-
-  // useEffect(() => {
-  //   // Assuming bounds is your state variable with minX, maxX, minY, maxY
-  //   if (canvasDrawingBounds.minX !== -Infinity) {
-  //     const [geoBounds, vstate] = convertToBounds(
-  //       canvasDrawingBounds,
-  //       viewState
-  //     );
-  //     setBounds(geoBounds);
-  //     setImageViewState(vstate);
-  //     // Now you can use geoBounds for whatever you need
-  //   }
-  // }, [canvasDrawingBounds]); // Depend on bounds state
 
   // useEffect to handle selectedBunker
   useEffect(() => {

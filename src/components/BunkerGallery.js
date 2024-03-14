@@ -51,10 +51,20 @@ export default function BunkerGallery({
                 zIndex: "2",
               }}
             >
-              <button onClick={() => setAwaitingConfirmationBunkerId(null)}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setAwaitingConfirmationBunkerId(null);
+                }}
+              >
                 Cancel
               </button>
-              <button onClick={() => requestBunkerDeletion(bunker.RowKey)}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  requestBunkerDeletion(bunker.RowKey);
+                }}
+              >
                 Confirm
               </button>
             </div>
