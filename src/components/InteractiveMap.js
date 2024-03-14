@@ -5,28 +5,19 @@ import DeckGL from "@deck.gl/react";
 // import flyto interpolator
 import { FlyToInterpolator } from "@deck.gl/core";
 import { Map } from "react-map-gl";
-import { GeoJsonLayer } from "deck.gl";
-import { PostProcessEffect } from "deck.gl";
-import {
-  dotScreen,
-  edgeWork,
-  noise,
-  vignette,
-  zoomBlur,
-  bulgePinch,
-} from "@luma.gl/shadertools";
+import { GeoJsonLayer, PostProcessEffect } from "deck.gl";
+import { dotScreen, noise, ink } from "@luma.gl/shadertools";
 import { MaskExtension } from "@deck.gl/extensions";
 import { buffer } from "@turf/turf";
 import { BitmapLayer } from "@deck.gl/layers";
 import { bbox } from "@turf/turf";
 import MeshLayer from "./layers/ScenegraphLayer";
-import BunkerGallery from "./BunkerGallery";
 import "mapbox-gl/dist/mapbox-gl.css";
-import UX from "./UX";
 import Canvas from "./Canvas";
 import CanvasAnimation from "./CanvasAnimation";
 import { ArcLayer } from "@deck.gl/layers";
 import { ScreenGridLayer, HeatmapLayer } from "@deck.gl/aggregation-layers";
+import AnimatedArcLayer from "./layers/animated-arc-group";
 
 import {
   convertToBounds,
@@ -42,81 +33,44 @@ const _ascii = new PostProcessEffect(dotScreen, {
   size: 3,
 });
 
-const _edges = new PostProcessEffect(edgeWork, {
-  intensity: 1,
-  threshold: 0.25,
-  color: [0, 0, 0],
-  background: [0, 0, 0, 0],
-});
-
 const _noise = new PostProcessEffect(noise, {
-  // opacity: 0.5,
-  speed: 0.25,
-  strength: 3,
+  amount: 0.5,
 });
 
-const _vignette = new PostProcessEffect(vignette, {
-  offset: 0.125,
-  darkness: 0.0625,
-  intensity: 0.1,
-});
-
-const _zoomBlur = new PostProcessEffect(zoomBlur, {
-  strength: 0.0125,
-  radius: 1,
-  center: [0.5, 0.5],
-});
-
-const _buldgePinch = new PostProcessEffect(bulgePinch, {
-  center: [0.5, 0.5],
-  radius: 1,
-  strength: 1,
-  aspect: 1,
-});
-
-const numFlags = 350;
-
-const INITIAL_VIEW_STATE = {
-  // boston
-  longitude: -71.08725092308282,
-  latitude: 42.360366356946194,
-  zoom: 16.5,
-  pitch: 100,
-  minPitch: 0,
-  maxPitch: 179,
-  minZoom: 13.5,
-  maxZoom: 22,
-};
-
-export default function InteractiveMap({ isMobile }) {
-  const [viewState, setViewState] = useState(INITIAL_VIEW_STATE);
+export default function InteractiveMap({
+  isMobile,
+  showCanvas,
+  setShowCanvas,
+  p5Instance,
+  canvasDrawingBounds,
+  setCanvasDrawingBounds,
+  selectedBunker,
+  setMinesweeperBunkers,
+  minesweeperBunkers,
+  triggerFetch,
+  setP5Instance,
+  setSelectedBunker,
+  initialEntry,
+  setInitialEntry,
+}) {
+  const [viewState, setViewState] = useState({
+    longitude: -71.08725092308282,
+    latitude: 42.360366356946194,
+    zoom: 16.5,
+    pitch: 100,
+    minPitch: 0,
+    maxPitch: 179,
+    minZoom: 13.5,
+    maxZoom: 22,
+  });
   const [viewStateBounds, setViewStateBounds] = useState({});
-  const [initialEntry, setInitialEntry] = useState(false);
   const [cursor, setCursor] = useState(null);
   const [bunkerCentroids, setBunkerCentroids] = useState([]);
   const [allBunkerCentroids, setAllBunkerCentroids] = useState([]); // [bunkerCentroids, minesweeperBunkers
   const [bunkers, setBunkers] = useState([]);
   const [bunkerLayers, setBunkerLayers] = useState(null);
-  const [minesweeperBunkers, setMinesweeperBunkers] = useState([]);
   const [minesweeperBunkerLayers, setMinesweeperBunkerLayers] = useState(null);
   const [network, setNetwork] = useState([]);
-  const [showCanvas, setShowCanvas] = useState(false);
-  const [canvasDrawingBounds, setCanvasDrawingBounds] = useState({
-    minX: -Infinity,
-    maxX: Infinity,
-    minY: -Infinity,
-    maxY: Infinity,
-  });
-  // projected drawing bounds
-  const [bounds, setBounds] = useState(null);
-  const [imageViewState, setImageViewState] = useState(null);
-
-  const [p5Instance, setP5Instance] = useState(null);
-  const [selectedBunker, setSelectedBunker] = useState(null);
-
-  // check to reload the database
-  const [triggerFetch, setTriggerFetch] = useState(false);
-
   // bonus 3d flags
   const [flags, setFlags] = useState(null);
 
@@ -155,8 +109,7 @@ export default function InteractiveMap({ isMobile }) {
   }, []);
 
   useEffect(() => {
-    // set timeout to fetch after waiting 3 seconds
-
+    // set timeout to fetch after waiting 1 second
     setTimeout(() => {
       fetch("https://99f-bunker-api.azurewebsites.net/api/LoadData", {
         method: "GET",
@@ -498,131 +451,105 @@ export default function InteractiveMap({ isMobile }) {
 
   return (
     <>
-      <div className="border-effect">
-        <UX
+      <div
+        id="canvas-wrapper"
+        onMouseEnter={(e) => {
+          if (!showCanvas) {
+            togglePlanView(true);
+          }
+        }}
+        // onMouseLeave={(e) => {
+        //   togglePlanView(false);
+        // }}
+      >
+        <Canvas
           showCanvas={showCanvas}
           setShowCanvas={setShowCanvas}
-          p5Instance={p5Instance}
           canvasDrawingBounds={canvasDrawingBounds}
-          bounds={bounds}
-          imageViewState={imageViewState}
-          selectedBunker={selectedBunker}
-          setMinesweeperBunkers={setMinesweeperBunkers}
-          minesweeperBunkers={minesweeperBunkers}
-          setTriggerFetch={setTriggerFetch}
-          triggerFetch={triggerFetch}
+          setCanvasDrawingBounds={setCanvasDrawingBounds}
+          p5Instance={p5Instance}
+          setP5Instance={setP5Instance}
         />
-      </div>
-      <div className="border-effect">
-        <div
-          id="canvas-wrapper"
-          onMouseEnter={(e) => {
-            if (!showCanvas) {
-              togglePlanView(true);
+        <DeckGL
+          viewState={viewState}
+          onViewStateChange={(e) => {
+            const viewState = e.viewState;
+            //check if viewStateBounds is an empty object
+            if (Object.keys(viewStateBounds).length === 0) return viewState;
+
+            viewState.longitude = Math.min(
+              viewStateBounds.eastLng,
+              Math.max(viewStateBounds.westLng, viewState.longitude)
+            );
+            viewState.latitude = Math.min(
+              viewStateBounds.northLat,
+              Math.max(viewStateBounds.southLat, viewState.latitude)
+            );
+
+            // if pitch 90, set to 89.999
+            if (viewState.pitch === 90) {
+              viewState.pitch = 89.999;
             }
+
+            setViewState(viewState);
+            return viewState;
           }}
-          // onMouseLeave={(e) => {
-          //   togglePlanView(false);
-          // }}
+          controller={{ inertia: 750, keyboard: true }}
+          layers={layers}
+          autoResize={true}
+          effects={[_noise, _ascii]}
+          //on mouse move, set cursor to the event
+          onHover={(event) => {
+            // check if hovering over a pickable object
+            if (!event.picked) {
+              setSelectedBunker(null);
+            }
+
+            if (event.coordinate === undefined) return;
+            let d;
+
+            // Base radius and decay rate
+            const a = 3500; // Adjust this base radius as needed
+            const b = 0.25; // Adjust this rate to control the scaling sensitivity
+
+            const dynamicRadius = a * Math.exp(-b * viewState.zoom);
+
+            d = buffer(
+              {
+                type: "Feature",
+                geometry: {
+                  type: "Point",
+                  coordinates: event.coordinate,
+                },
+              },
+              // mask radius divided by square root of viewstate.zoom
+              dynamicRadius,
+              { units: "meters" }
+            );
+
+            setCursor(d);
+          }}
+          autoTooltip={true}
+          // set content for auto tooltip
+          getTooltip={({ object }) => {
+            if (!object || !object.properties?.text) return null;
+            return {
+              html: `<div class="border-effect">${object.properties.text}</div>`,
+              style: {
+                backgroundColor: "#bdbdbd",
+                color: "black",
+                width: "300px",
+                height: "auto",
+              },
+            };
+          }}
         >
-          <Canvas
-            showCanvas={showCanvas}
-            setShowCanvas={setShowCanvas}
-            canvasDrawingBounds={canvasDrawingBounds}
-            setCanvasDrawingBounds={setCanvasDrawingBounds}
-            p5Instance={p5Instance}
-            setP5Instance={setP5Instance}
+          <Map
+            mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
+            projection="mercator"
+            mapStyle="mapbox://styles/niko-dellic/cltohpb4n020q01phd3radn2i"
           />
-          <DeckGL
-            viewState={viewState}
-            onViewStateChange={(e) => {
-              const viewState = e.viewState;
-              //check if viewStateBounds is an empty object
-              if (Object.keys(viewStateBounds).length === 0) return viewState;
-
-              viewState.longitude = Math.min(
-                viewStateBounds.eastLng,
-                Math.max(viewStateBounds.westLng, viewState.longitude)
-              );
-              viewState.latitude = Math.min(
-                viewStateBounds.northLat,
-                Math.max(viewStateBounds.southLat, viewState.latitude)
-              );
-
-              // if pitch 90, set to 89.999
-              if (viewState.pitch === 90) {
-                viewState.pitch = 89.999;
-              }
-
-              setViewState(viewState);
-              return viewState;
-            }}
-            controller={{ inertia: 750, keyboard: true }}
-            layers={layers}
-            autoResize={true}
-            effects={[_ascii, _noise, _buldgePinch]}
-            //on mouse move, set cursor to the event
-            onHover={(event) => {
-              // check if hovering over a pickable object
-              if (!event.picked) {
-                setSelectedBunker(null);
-              }
-
-              if (event.coordinate === undefined) return;
-              let d;
-
-              // Base radius and decay rate
-              const a = 3500; // Adjust this base radius as needed
-              const b = 0.25; // Adjust this rate to control the scaling sensitivity
-
-              const dynamicRadius = a * Math.exp(-b * viewState.zoom);
-
-              d = buffer(
-                {
-                  type: "Feature",
-                  geometry: {
-                    type: "Point",
-                    coordinates: event.coordinate,
-                  },
-                },
-                // mask radius divided by square root of viewstate.zoom
-                dynamicRadius,
-                { units: "meters" }
-              );
-
-              setCursor(d);
-            }}
-            autoTooltip={true}
-            // set content for auto tooltip
-            getTooltip={({ object }) => {
-              if (!object || !object.properties?.text) return null;
-              return {
-                html: `<div class="border-effect">${object.properties.text}</div>`,
-                style: {
-                  backgroundColor: "#bdbdbd",
-                  color: "black",
-                  width: "300px",
-                  height: "auto",
-                },
-              };
-            }}
-          >
-            <Map
-              mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
-              // mercator projection
-              projection="mercator"
-              mapStyle="mapbox://styles/niko-dellic/cltohpb4n020q01phd3radn2i"
-            />
-          </DeckGL>
-        </div>
-      </div>
-      <div className="border-effect" id="bunker-gallery-wrapper">
-        <BunkerGallery
-          minesweeperBunkers={minesweeperBunkers}
-          selectedBunker={selectedBunker}
-          setSelectedBunker={setSelectedBunker}
-          setInitialEntry={setInitialEntry}
-        />
+        </DeckGL>
       </div>
     </>
   );

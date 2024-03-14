@@ -23,6 +23,7 @@ function saveImage(dataURL, filename) {
 }
 
 export default function UX({
+  isMobile,
   showCanvas,
   setShowCanvas,
   p5Instance,
