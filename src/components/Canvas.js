@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 // import { ReactP5Wrapper } from "@p5-wrapper/react";
 import dynamic from "next/dynamic";
+import { convertToBounds } from "./utils";
 
 // Dynamically import ReactP5Wrapper with SSR disabled
 const ReactP5Wrapper = dynamic(
@@ -37,12 +38,12 @@ function sketch(updateBounds, width, height) {
 
       let coinToss = p.random();
       p.textSize(interval);
-      p.textFont('Courier New');
+      p.textFont("Courier New");
       p.textStyle(p.BOLD);
-      
+
       if (coinToss < 0.33) {
         // hidden square
-        
+
         // Base rectangle
         p.fill("#c0c0c0");
         p.stroke("#c0c0c0"); // Set stroke to gray to blend with the rectangle
@@ -52,22 +53,32 @@ function sketch(updateBounds, width, height) {
         // Top and left border - lighter
         p.stroke("#ffffff");
         p.strokeWeight(offset); // Thicker stroke
-        p.line(x + offset/2, y + offset/2, x + interval + offset/2, y + offset/2); // Top border
-        p.line(x + offset/2, y + offset/2, x + offset/2, y + interval + offset/2); // Left border
+        p.line(
+          x + offset / 2,
+          y + offset / 2,
+          x + interval + offset / 2,
+          y + offset / 2
+        ); // Top border
+        p.line(
+          x + offset / 2,
+          y + offset / 2,
+          x + offset / 2,
+          y + interval + offset / 2
+        ); // Left border
 
         // Bottom and right border - darker gray
         p.stroke("#808080"); // Darker gray stroke
         p.line(
-          x + interval + offset/2,
-          y + offset/2,
-          x + interval + offset/2,
-          y + interval + offset/2
+          x + interval + offset / 2,
+          y + offset / 2,
+          x + interval + offset / 2,
+          y + interval + offset / 2
         ); // Right border
         p.line(
-          x + offset/2,
-          y + interval + offset/2,
-          x + interval + offset/2,
-          y + interval + offset/2
+          x + offset / 2,
+          y + interval + offset / 2,
+          x + interval + offset / 2,
+          y + interval + offset / 2
         ); // Bottom border
       } else {
         // exposed empty square
@@ -75,40 +86,30 @@ function sketch(updateBounds, width, height) {
         p.fill("#c0c0c0");
         p.stroke("#c0c0c0");
         p.rect(x, y, interval, interval);
-        
+
         // Top and left border - lighter
         p.stroke("#909090");
         p.strokeWeight(offset); // Thicker stroke
         p.line(x, y, x + interval, y); // Top border
         p.line(x, y, x, y + interval); // Left border
-        p.line(
-          x + interval,
-          y,
-          x + interval,
-          y + interval
-        ); // Right border
-        p.line(
-          x,
-          y + interval,
-          x + interval,
-          y + interval
-        ); // Bottom border
-        
+        p.line(x + interval, y, x + interval, y + interval); // Right border
+        p.line(x, y + interval, x + interval, y + interval); // Bottom border
+
         if (coinToss < 0.5) {
           p.fill("#1900ff");
-          p.text('1', x+(interval/4), y+interval-offset);
+          p.text("1", x + interval / 4, y + interval - offset);
         } else if (coinToss < 0.6) {
           p.fill("#008001");
-          p.text('2', x+(interval/4), y+interval-offset);
+          p.text("2", x + interval / 4, y + interval - offset);
         } else if (coinToss < 0.66) {
           p.fill("#ff0200");
-          p.text('3', x+(interval/4), y+interval-offset);
+          p.text("3", x + interval / 4, y + interval - offset);
         } else if (coinToss < 0.69) {
           p.fill("#080080");
-          p.text('4', x+(interval/4), y+interval-offset);
+          p.text("4", x + interval / 4, y + interval - offset);
         } else if (coinToss < 0.7) {
           p.fill("#810000");
-          p.text('5', x+(interval/4), y+interval-offset);
+          p.text("5", x + interval / 4, y + interval - offset);
         }
       }
 
@@ -159,8 +160,12 @@ function sketch(updateBounds, width, height) {
 }
 export default function Canvas({
   showCanvas,
+  setBounds,
+  setImageViewState,
+  canvasDrawingBounds,
   setCanvasDrawingBounds,
   setP5Instance,
+  viewState,
 }) {
   const [isClient, setIsClient] = useState(false);
 
@@ -188,6 +193,19 @@ export default function Canvas({
       sketchRef.current = wrappedSketch;
     }
   }, [updateBounds]);
+
+  useEffect(() => {
+    // Assuming bounds is your state variable with minX, maxX, minY, maxY
+    if (canvasDrawingBounds.minX !== -Infinity) {
+      const [geoBounds, vstate] = convertToBounds(
+        canvasDrawingBounds,
+        viewState
+      );
+      setBounds(geoBounds);
+      setImageViewState(vstate);
+      // Now you can use geoBounds for whatever you need
+    }
+  }, [canvasDrawingBounds]); // Depend on bounds state
 
   // Sketch Ref to prevent re-creation of the sketch on every render
   const sketchRef = useRef(null);
