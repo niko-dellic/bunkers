@@ -135,6 +135,7 @@ export default function InteractiveMap({ isMobile }) {
     if (info) {
       setSelectedBunker(info);
     } else {
+      console.log("no info");
       setSelectedBunker(null);
     }
   };
@@ -298,6 +299,7 @@ export default function InteractiveMap({ isMobile }) {
       !selectedBunker.View
     )
       return;
+
     const view = JSON.parse(selectedBunker.View);
 
     setViewState({

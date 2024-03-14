@@ -4,6 +4,8 @@ import { useState } from "react";
 import BunkerForm from "./BunkerForm";
 import DisplayBunkerProperties from "./DisplayBunkerProperties";
 import { v4 as uuidv4 } from "uuid";
+import InfoPanel from "./InfoPanel";
+import DisplayBunkerResults from "./DisplayBunkerResults";
 
 function saveJSON(obj, filename) {
   const a = document.createElement("a");
@@ -33,6 +35,7 @@ export default function UX({
   setTriggerFetch,
   triggerFetch,
 }) {
+  const [result, setResult] = useState(null);
   // Save Canvas as PNG and form data as JSON
   async function saveBunker(data) {
     if (p5Instance) {
@@ -66,6 +69,8 @@ export default function UX({
         view,
         data,
         dataURL,
+        //for image, do the same thing with the dataURL
+        //add chat gpt data
       };
       // saveJSON(dataToSave, "bunkers-metadata");
       // console.log(dataToSave);
@@ -96,33 +101,51 @@ export default function UX({
   }
 
   return (
-    <div id="controls-wrapper">
-      <div id="toolbar">
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setShowCanvas(true);
-          }}
-        >
-          + ADD YOUR LAST RESORT LISTING TO AIRBNBUNKER
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowCanvas(false);
-          }}
-          style={{ color: !showCanvas ? "#bdbdbd" : "black" }}
-        >
-          X
-        </button>
-      </div>
+    <>
+      <div id="controls-wrapper">
+        <InfoPanel minesweeperBunkers={minesweeperBunkers} />
 
-      {showCanvas && <BunkerForm onFormDataChange={handleFormData} />}
+        <div id="toolbar">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowCanvas(true);
 
-      {!showCanvas && selectedBunker && (
+              console.log("X clicked");
+            }}
+          >
+            + ADD YOUR LAST RESORT LISTING TO AIRBNBUNKER
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowCanvas(false);
+            }}
+            style={{ color: !showCanvas ? "#bdbdbd" : "black" }}
+          >
+            X
+          </button>
+        </div>
+
+        {showCanvas && !result && (
+          <BunkerForm
+            onFormDataChange={handleFormData}
+            result={result}
+            setResult={setResult}
+          />
+        )}
+
+        {!showCanvas && !result && selectedBunker && (
+          <DisplayBunkerProperties selectedBunker={selectedBunker} />
+        )}
+
+        {result && <DisplayBunkerResults result={result} />}
+
+        {/* else{
         <DisplayBunkerProperties selectedBunker={selectedBunker} />
-      )}
-    </div>
+      } */}
+      </div>
+    </>
   );
 }
