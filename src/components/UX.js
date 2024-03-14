@@ -28,6 +28,10 @@ export default function UX({
   bounds,
   selectedBunker,
   imageViewState,
+  setMinesweeperBunkers,
+  minesweeperBunkers,
+  setTriggerFetch,
+  triggerFetch,
 }) {
   // Save Canvas as PNG and form data as JSON
   async function saveBunker(data) {
@@ -46,7 +50,7 @@ export default function UX({
       offScreenCanvas.width = w;
       offScreenCanvas.height = h;
       const ctx = offScreenCanvas.getContext("2d");
-      ctx.drawImage(croppedImage.canvas, 0, 0);
+      ctx?.drawImage(croppedImage.canvas, 0, 0);
 
       data.id = `bunker-${uuidv4()}`;
 
@@ -64,24 +68,24 @@ export default function UX({
         dataURL,
       };
       // saveJSON(dataToSave, "bunkers-metadata");
+      // console.log(dataToSave);
+      // console.log(minesweeperBunkers);
 
       // Connect to backend to save in table/blob storage
 
-      const resp = await fetch(
-        "https://99f-bunker-api.azurewebsites.net/api/SaveToBlob",
-        {
-          method: "POST", // or 'PUT'
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "DELETE, POST, GET, OPTIONS",
-            "Access-Control-Allow-Headers":
-              "Content-Type, Authorization, X-Requested-With",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(dataToSave),
-        }
-      );
+      await fetch("https://99f-bunker-api.azurewebsites.net/api/SaveToBlob", {
+        method: "POST", // or 'PUT'
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "DELETE, POST, GET, OPTIONS",
+          "Access-Control-Allow-Headers":
+            "Content-Type, Authorization, X-Requested-With",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataToSave),
+      });
 
+      setTriggerFetch(!triggerFetch);
       setShowCanvas(false); // Optionally hide canvas after saving
     }
   }

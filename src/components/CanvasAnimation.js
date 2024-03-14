@@ -5,7 +5,7 @@ import { FlyToInterpolator } from "@deck.gl/core";
 export default function CanvasAnimation({
   bunkerCentroids,
   initialEntry,
-  setInitialViewState,
+  setViewState,
 }) {
   if (
     !bunkerCentroids ||
@@ -39,7 +39,7 @@ export default function CanvasAnimation({
     });
     const bear = bearing(currentCoordinates, nextCoordinates);
 
-    setInitialViewState((prevState) => ({
+    setViewState((prevState) => ({
       ...prevState,
       longitude: currentCoordinates[0],
       latitude: currentCoordinates[1],

@@ -75,23 +75,36 @@ const _buldgePinch = new PostProcessEffect(bulgePinch, {
 
 const numFlags = 350;
 
+const INITIAL_VIEW_STATE = {
+  // boston
+  longitude: -71.08725092308282,
+  latitude: 42.360366356946194,
+  zoom: 16.5,
+  pitch: 100,
+  minPitch: 0,
+  maxPitch: 179,
+  minZoom: 15,
+  maxZoom: 22,
+};
+
 export default function InteractiveMap({ isMobile }) {
-  const [initialViewState, setInitialViewState] = useState({
-    // boston
-    longitude: -71.08725092308282,
-    latitude: 42.360366356946194,
-    zoom: 16.5,
-    pitch: 100,
-    minPitch: 0,
-    maxPitch: 179,
-    minZoom: 15,
-    maxZoom: 22,
-  });
-  const [viewState, setViewState] = useState(initialViewState);
+  // const [initialViewState, setInitialViewState] = useState({
+  //   // boston
+  //   longitude: -71.08725092308282,
+  //   latitude: 42.360366356946194,
+  //   zoom: 16.5,
+  //   pitch: 100,
+  //   minPitch: 0,
+  //   maxPitch: 179,
+  //   minZoom: 15,
+  //   maxZoom: 22,
+  // });
+  const [viewState, setViewState] = useState(INITIAL_VIEW_STATE);
   const [viewStateBounds, setViewStateBounds] = useState({});
   const [initialEntry, setInitialEntry] = useState(false);
   const [cursor, setCursor] = useState(null);
   const [bunkerCentroids, setBunkerCentroids] = useState([]);
+  const [allBunkerCentroids, setAllBunkerCentroids] = useState([]); // [bunkerCentroids, minesweeperBunkers
   const [bunkers, setBunkers] = useState([]);
   const [bunkerLayers, setBunkerLayers] = useState(null);
   const [minesweeperBunkers, setMinesweeperBunkers] = useState([]);
@@ -110,6 +123,9 @@ export default function InteractiveMap({ isMobile }) {
 
   const [p5Instance, setP5Instance] = useState(null);
   const [selectedBunker, setSelectedBunker] = useState(null);
+
+  // check to reload the database
+  const [triggerFetch, setTriggerFetch] = useState(false);
 
   // bonus 3d flags
   const [flags, setFlags] = useState(null);
@@ -136,11 +152,9 @@ export default function InteractiveMap({ isMobile }) {
 
         // get the bounding box for all of the bunkers
         const dataBounds = bbox(data);
-
         setBunkerCentroids(data);
-        setFlags(generateRandomFlags(numFlags, data));
+
         if (!isMobile) setBunkers(createBufferAndBbox(data, 0.0125, "miles"));
-        setNetwork(createNetworkEdges(data));
         setViewStateBounds({
           westLng: dataBounds[0],
           southLat: dataBounds[1],
@@ -148,30 +162,66 @@ export default function InteractiveMap({ isMobile }) {
           northLat: dataBounds[3],
         });
       });
-
-    fetch("https://99f-bunker-api.azurewebsites.net/api/LoadData", {
-      method: "GET",
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "DELETE, POST, GET, OPTIONS",
-        "Access-Control-Allow-Headers":
-          "Content-Type, Authorization, X-Requested-With",
-        "Content-Type": "application/json",
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setMinesweeperBunkers(data);
-      });
   }, []);
+
+  useEffect(() => {
+    // set timeout to fetch after waiting 3 seconds
+
+    setTimeout(() => {
+      fetch("https://99f-bunker-api.azurewebsites.net/api/LoadData", {
+        method: "GET",
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "DELETE, POST, GET, OPTIONS",
+          "Access-Control-Allow-Headers":
+            "Content-Type, Authorization, X-Requested-With",
+          "Content-Type": "application/json",
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          setMinesweeperBunkers(data);
+        });
+    }, 1000);
+  }, [triggerFetch]);
+
+  useEffect(() => {
+    console.log("yo");
+    if (bunkerCentroids?.features?.length > 0) {
+      setFlags(generateRandomFlags(bunkerCentroids));
+      // combine the bunker centroids and the minesweeper bunkers
+      const combinedBunkers = bunkerCentroids;
+
+      if (minesweeperBunkers.length > 0) {
+        const msPts = minesweeperBunkers.map((b) => {
+          const v = JSON.parse(b.View);
+          const props = JSON.parse(b.Data);
+          return {
+            type: "Feature",
+            geometry: {
+              type: "Point",
+              coordinates: [v.longitude, v.latitude],
+            },
+            properties: props,
+          };
+        });
+
+        combinedBunkers.features = combinedBunkers.features.concat(msPts);
+      }
+
+      setNetwork(createNetworkEdges(combinedBunkers));
+      setAllBunkerCentroids(combinedBunkers);
+    }
+  }, [bunkerCentroids, minesweeperBunkers]);
 
   useEffect(() => {
     // set the map pitch to 0 if the canvas is shown
     if (showCanvas) {
-      setInitialViewState(() => ({
+      setViewState(() => ({
         ...viewState,
         pitch: 0,
         bearing: 0,
+        zoom: 18,
       }));
     }
   }, [showCanvas]);
@@ -250,7 +300,7 @@ export default function InteractiveMap({ isMobile }) {
       return;
     const view = JSON.parse(selectedBunker.View);
 
-    setInitialViewState({
+    setViewState({
       ...viewState,
       pitch: 0,
       zoom: view.zoom,
@@ -266,7 +316,7 @@ export default function InteractiveMap({ isMobile }) {
   //     const cleanupAnimation = CanvasAnimation({
   //       bunkerCentroids,
   //       initialEntry,
-  //       setInitialViewState,
+  //       setViewState,
   //     });
   //     // Cleanup function to stop the animation if the component unmounts
   //     return () => {
@@ -298,7 +348,7 @@ export default function InteractiveMap({ isMobile }) {
       }),
     new GeoJsonLayer({
       id: "points-layer",
-      data: bunkerCentroids,
+      data: allBunkerCentroids,
       stroked: false,
       filled: true,
       pointType: "circle",
@@ -336,18 +386,19 @@ export default function InteractiveMap({ isMobile }) {
         getTargetPosition: (d) => d.geometry.coordinates[1],
         getSourceColor: [255, 255, 255],
         getTargetColor: [255, 255, 255],
-        getWidth: 2,
-        getHeight: -0.5,
+        getWidth: 3,
+        getHeight: -0.25,
         extensions: [new MaskExtension()],
         maskId: "geofence",
         maskInverted: false,
       }),
-    MeshLayer({
-      id: "flags",
-      data: flags?.features,
-      scenegraphUrl: "./assets/glb/flag.glb",
-      scale: 10,
-    }),
+    flags &&
+      MeshLayer({
+        id: "flags",
+        data: flags?.features,
+        scenegraphUrl: "./assets/glb/flag.glb",
+        scale: 10,
+      }),
     MeshLayer({
       id: "media-lab",
       data: [
@@ -415,7 +466,7 @@ export default function InteractiveMap({ isMobile }) {
         vs = { ...viewState, pitch: 110 };
       }
       setInitialEntry(true);
-      setInitialViewState({
+      setViewState({
         ...vs,
         transitionDuration: 1500,
         transitionInterpolator: new FlyToInterpolator(),
@@ -435,6 +486,10 @@ export default function InteractiveMap({ isMobile }) {
           bounds={bounds}
           imageViewState={imageViewState}
           selectedBunker={selectedBunker}
+          setMinesweeperBunkers={setMinesweeperBunkers}
+          minesweeperBunkers={minesweeperBunkers}
+          setTriggerFetch={setTriggerFetch}
+          triggerFetch={triggerFetch}
         />
       </div>
       <div className="border-effect">
@@ -458,7 +513,7 @@ export default function InteractiveMap({ isMobile }) {
             setP5Instance={setP5Instance}
           />
           <DeckGL
-            initialViewState={initialViewState}
+            viewState={viewState}
             onViewStateChange={(e) => {
               const viewState = e.viewState;
               //check if viewStateBounds is an empty object
@@ -479,7 +534,6 @@ export default function InteractiveMap({ isMobile }) {
               }
 
               setViewState(viewState);
-
               return viewState;
             }}
             controller={{ inertia: 750, keyboard: true }}

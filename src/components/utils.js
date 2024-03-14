@@ -84,7 +84,8 @@ export function createNetworkEdges(data) {
 }
 
 // Generate random points for flags with random rotation
-export function generateRandomFlags(numFlags, data) {
+export function generateRandomFlags(data) {
+  const numFlags = 500;
   const dataBounds = bbox(data);
   const boundingBox = bboxPolygon(dataBounds);
 
