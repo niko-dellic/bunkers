@@ -19,13 +19,13 @@ import { MaskExtension } from "@deck.gl/extensions";
 import { buffer } from "@turf/turf";
 import { BitmapLayer } from "@deck.gl/layers";
 import { bbox } from "@turf/turf";
-import ArcLayer from "./layers/ArcLayer";
 import MeshLayer from "./layers/ScenegraphLayer";
 import BunkerGallery from "./BunkerGallery";
 import "mapbox-gl/dist/mapbox-gl.css";
 import UX from "./UX";
 import Canvas from "./Canvas";
 import CanvasAnimation from "./CanvasAnimation";
+import { ArcLayer } from "@deck.gl/layers";
 
 import {
   convertToBounds,
@@ -186,6 +186,9 @@ export default function InteractiveMap({ isMobile }) {
         maskByInstance: true,
         pickable: true,
         onHover: (info) => {
+          if (!info.bitmap) {
+            setSelectedBunker(null);
+          }
           const hoveredBunker = bunkerCentroids.features[i];
           handleBunkerTrigger(hoveredBunker.properties);
         },
@@ -324,7 +327,20 @@ export default function InteractiveMap({ isMobile }) {
       maskId: "geofence",
       maskInverted: true,
     }),
-    !showCanvas && ArcLayer({ data: network }),
+    !showCanvas &&
+      new ArcLayer({
+        id: "arc-layer",
+        data: network.features,
+        getSourcePosition: (d) => d.geometry.coordinates[0],
+        getTargetPosition: (d) => d.geometry.coordinates[1],
+        getSourceColor: [255, 255, 255],
+        getTargetColor: [255, 255, 255],
+        getWidth: 2,
+        getHeight: -0.5,
+        extensions: [new MaskExtension()],
+        maskId: "geofence",
+        maskInverted: false,
+      }),
     MeshLayer({
       id: "flags",
       data: flags?.features,
@@ -471,11 +487,16 @@ export default function InteractiveMap({ isMobile }) {
             effects={[_ascii, _noise, _buldgePinch]}
             //on mouse move, set cursor to the event
             onHover={(event) => {
+              // check if hovering over a pickable object
+              if (!event.picked) {
+                setSelectedBunker(null);
+              }
+
               if (event.coordinate === undefined) return;
               let d;
 
               // Base radius and decay rate
-              const a = 2000; // Adjust this base radius as needed
+              const a = 3500; // Adjust this base radius as needed
               const b = 0.25; // Adjust this rate to control the scaling sensitivity
 
               const dynamicRadius = a * Math.exp(-b * viewState.zoom);
@@ -498,13 +519,12 @@ export default function InteractiveMap({ isMobile }) {
             autoTooltip={true}
             // set content for auto tooltip
             getTooltip={({ object }) => {
-              if (!object) return null;
+              if (!object || !object.properties?.text) return null;
               return {
                 html: `<div class="border-effect">${object.properties.text}</div>`,
                 style: {
                   backgroundColor: "#bdbdbd",
                   color: "black",
-                  border: "5px outset white",
                   width: "300px",
                   height: "auto",
                 },
