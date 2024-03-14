@@ -137,7 +137,7 @@ export default function InteractiveMap({
         ...viewState,
         pitch: 0,
         bearing: 0,
-        zoom: 17.5,
+        zoom: 18.5,
       }));
     }
   }, [showCanvas]);

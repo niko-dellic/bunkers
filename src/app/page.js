@@ -108,6 +108,7 @@ export default function Home() {
               minesweeperBunkers={minesweeperBunkers}
               setTriggerFetch={setTriggerFetch}
               triggerFetch={triggerFetch}
+              setSelectedBunker={setSelectedBunker}
             />
           </div>
           <div className="border-effect">

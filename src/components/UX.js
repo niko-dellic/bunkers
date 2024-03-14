@@ -6,6 +6,7 @@ import DisplayBunkerProperties from "./DisplayBunkerProperties";
 import { v4 as uuidv4 } from "uuid";
 import InfoPanel from "./InfoPanel";
 import DisplayBunkerResults from "./DisplayBunkerResults";
+import Tutorials from "./tutorials";
 
 export default function UX({
   isMobile,
@@ -19,6 +20,7 @@ export default function UX({
   minesweeperBunkers,
   setTriggerFetch,
   triggerFetch,
+  setSelectedBunker,
 }) {
   const [result, setResult] = useState(null);
   // Save Canvas as PNG and form data as JSON
@@ -51,9 +53,7 @@ export default function UX({
         data.id = `bunker-${uuidv4()}`;
 
         const dataURL = offScreenCanvas.toDataURL("image/png");
-
         const view = imageViewState;
-
         const dataToSave = {
           bounds,
           view,
@@ -79,10 +79,7 @@ export default function UX({
     } catch (error) {
       // Handle errors gracefully
       alert(
-        `
-        ERROR! 
-        404: BUNKER NOT FOUND
-
+        `ERROR! 404: BUNKER NOT FOUND
       DRAW A BUNKER IF YOU HOPE TO SURVIVE
         `
       ); // Display a warning to the user
@@ -95,50 +92,43 @@ export default function UX({
   }
 
   return (
-    <>
-      <div id="controls-wrapper">
-        <InfoPanel minesweeperBunkers={minesweeperBunkers} />
-
-        <div id="toolbar">
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setShowCanvas(true);
-            }}
-          >
-            + ADD YOUR AIRBNBUNKER
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowCanvas(false);
-            }}
-            style={{ color: !showCanvas ? "#bdbdbd" : "black" }}
-          >
-            X
-          </button>
-        </div>
-
-        {showCanvas && !result && (
-          <BunkerForm onFormDataChange={handleFormData} setResult={setResult} />
-        )}
-
-        {!showCanvas && !result && selectedBunker && (
-          <DisplayBunkerProperties selectedBunker={selectedBunker} />
-        )}
-
-        {(result || selectedBunker) && (
-          <DisplayBunkerResults
-            result={result}
-            selectedBunker={selectedBunker}
-          />
-        )}
-
-        {/* else{
+    <div id="controls-wrapper">
+      <div id="toolbar">
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setShowCanvas(true);
+            setResult(null);
+            setSelectedBunker(null);
+          }}
+        >
+          + ADD YOUR AIRBNBUNKER
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowCanvas(false);
+          }}
+          style={{ color: !showCanvas ? "#bdbdbd" : "black" }}
+        >
+          X
+        </button>
+        <Tutorials showCanvas={showCanvas} />
+      </div>
+      <InfoPanel minesweeperBunkers={minesweeperBunkers} />
+      {showCanvas && !result && (
+        <BunkerForm onFormDataChange={handleFormData} setResult={setResult} />
+      )}
+      {!showCanvas && !result && selectedBunker && (
+        <DisplayBunkerProperties selectedBunker={selectedBunker} />
+      )}
+      {(result || selectedBunker) && (
+        <DisplayBunkerResults result={result} selectedBunker={selectedBunker} />
+      )}
+      {/* else{
         <DisplayBunkerProperties selectedBunker={selectedBunker} />
       } */}
-      </div>
-    </>
+    </div>
   );
 }
