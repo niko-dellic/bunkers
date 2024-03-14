@@ -58,16 +58,11 @@ export default function Tutorials({ showCanvas }) {
 
   return (
     <div id="tutorials-wrapper">
-      <Image
-        src={gif}
-        alt={alt}
-        // set to fill
-        layout="fill"
-      />
+      <Image src={gif} alt={alt} layout="fill" priority={true} sizes="" />
       <div id="tutorial-steps">
         <p>{description}</p>
-        <button onClick={nextStep}>{"<"}</button>
-        <button onClick={previousStep}>{">"}</button>
+        <button onClick={previousStep}>{"<"}</button>
+        <button onClick={nextStep}>{">"}</button>
       </div>
     </div>
   );

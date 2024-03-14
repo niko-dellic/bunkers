@@ -39,6 +39,8 @@ export default function BunkerForm({ onFormDataChange, setResult }) {
         model: "gpt-3.5-turbo",
       });
 
+      console.log(completion);
+
       const res = completion.choices[0].message.content;
       data.result = res;
 

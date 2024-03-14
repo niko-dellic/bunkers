@@ -80,6 +80,8 @@ form,
   border-right: 2px solid #7f7f7f;
   padding: 3px;
   border-style: outset;
+  /* display: grid; */
+  /* grid-template-rows: 1fr 1fr; */
   /* width: 100%; */
 }
 
