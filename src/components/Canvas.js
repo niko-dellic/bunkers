@@ -35,32 +35,82 @@ function sketch(updateBounds, width, height) {
 
       if (x < 0 || x > width || y < 0 || y > height) return; // Prevent drawing outside the canvas
 
-      // Base rectangle
-      p.fill("#bdbdbd");
-      p.stroke("#bdbdbd"); // Set stroke to gray to blend with the rectangle
-      p.rect(x, y, interval, interval);
+      let coinToss = p.random();
+      p.textSize(interval);
+      p.textFont('Courier New');
+      p.textStyle(p.BOLD);
+      
+      if (coinToss < 0.33) {
+        // hidden square
+        
+        // Base rectangle
+        p.fill("#c0c0c0");
+        p.stroke("#c0c0c0"); // Set stroke to gray to blend with the rectangle
+        p.rect(x, y, interval, interval);
 
-      // Simulate 3D effect
-      // Top and left border - lighter
-      p.stroke("#fefefe");
-      p.strokeWeight(offset); // Thicker stroke
-      p.line(x, y, x + interval - offset, y); // Top border
-      p.line(x, y, x, y + interval - offset); // Left border
+        // Simulate 3D effect
+        // Top and left border - lighter
+        p.stroke("#ffffff");
+        p.strokeWeight(offset); // Thicker stroke
+        p.line(x + offset/2, y + offset/2, x + interval + offset/2, y + offset/2); // Top border
+        p.line(x + offset/2, y + offset/2, x + offset/2, y + interval + offset/2); // Left border
 
-      // Bottom and right border - darker gray
-      p.stroke("#7f7f7f"); // Darker gray stroke
-      p.line(
-        x + interval - offset,
-        y,
-        x + interval - offset,
-        y + interval - offset
-      ); // Right border
-      p.line(
-        x,
-        y + interval - offset,
-        x + interval - offset,
-        y + interval - offset
-      ); // Bottom border
+        // Bottom and right border - darker gray
+        p.stroke("#808080"); // Darker gray stroke
+        p.line(
+          x + interval + offset/2,
+          y + offset/2,
+          x + interval + offset/2,
+          y + interval + offset/2
+        ); // Right border
+        p.line(
+          x + offset/2,
+          y + interval + offset/2,
+          x + interval + offset/2,
+          y + interval + offset/2
+        ); // Bottom border
+      } else {
+        // exposed empty square
+
+        p.fill("#c0c0c0");
+        p.stroke("#c0c0c0");
+        p.rect(x, y, interval, interval);
+        
+        // Top and left border - lighter
+        p.stroke("#909090");
+        p.strokeWeight(offset); // Thicker stroke
+        p.line(x, y, x + interval, y); // Top border
+        p.line(x, y, x, y + interval); // Left border
+        p.line(
+          x + interval,
+          y,
+          x + interval,
+          y + interval
+        ); // Right border
+        p.line(
+          x,
+          y + interval,
+          x + interval,
+          y + interval
+        ); // Bottom border
+        
+        if (coinToss < 0.5) {
+          p.fill("#1900ff");
+          p.text('1', x+(interval/4), y+interval-offset);
+        } else if (coinToss < 0.6) {
+          p.fill("#008001");
+          p.text('2', x+(interval/4), y+interval-offset);
+        } else if (coinToss < 0.66) {
+          p.fill("#ff0200");
+          p.text('3', x+(interval/4), y+interval-offset);
+        } else if (coinToss < 0.69) {
+          p.fill("#080080");
+          p.text('4', x+(interval/4), y+interval-offset);
+        } else if (coinToss < 0.7) {
+          p.fill("#810000");
+          p.text('5', x+(interval/4), y+interval-offset);
+        }
+      }
 
       // Update bounds
       if (x < minX) minX = x;
