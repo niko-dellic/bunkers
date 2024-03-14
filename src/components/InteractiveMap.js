@@ -171,6 +171,7 @@ export default function InteractiveMap({ isMobile }) {
       setInitialViewState(() => ({
         ...viewState,
         pitch: 0,
+        bearing: 0,
       }));
     }
   }, [showCanvas]);
