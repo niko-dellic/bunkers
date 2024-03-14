@@ -1,40 +1,90 @@
 import Image from "next/image";
+import React, { useState } from "react";
 
 export default function BunkerGallery({
   minesweeperBunkers,
-  selectedBunker,
   setSelectedBunker,
   setInitialEntry,
+  triggerFetch,
+  setTriggerFetch,
 }) {
+  const [awaitingConfirmationBunkerId, setAwaitingConfirmationBunkerId] =
+    useState(null);
+
+  const requestBunkerDeletion = async (bunkerId) => {
+    await fetch("https://99f-bunker-api.azurewebsites.net/api/DeleteBunker", {
+      method: "POST",
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "DELETE, POST, GET, OPTIONS",
+        "Access-Control-Allow-Headers":
+          "Content-Type, Authorization, X-Requested-With",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        bunkerId,
+      }),
+    });
+    setTriggerFetch(!triggerFetch);
+    setAwaitingConfirmationBunkerId(null); // Reset the awaiting confirmation state
+  };
+
   return (
     <div id="bunker-gallery">
-      {minesweeperBunkers.map((bunker, index) => {
-        return (
-          <div
-            key={index}
-            className="bunker-gallery-item"
-            onClick={(e) => {
-              // scroll to top
-              window.scrollTo(0, 0);
-              setInitialEntry(true);
-              setSelectedBunker(bunker);
-            }}
-          >
-            <Image
-              src={bunker.ImageURL}
-              alt={bunker.Data["name"] || `Bunker ${index + 1}`}
-              sizes="500px"
-              fill
+      {minesweeperBunkers.map((bunker, index) => (
+        <div
+          key={index}
+          className="bunker-gallery-item"
+          onClick={() => {
+            window.scrollTo(0, 0);
+            setInitialEntry(true);
+            setSelectedBunker(bunker);
+          }}
+        >
+          {/* Conditional rendering for deletion confirmation */}
+          {awaitingConfirmationBunkerId === bunker.RowKey ? (
+            <div
               style={{
-                objectFit: "contain",
+                position: "absolute",
+                top: "0",
+                right: "0",
+                zIndex: "2",
               }}
-            />
-            <p>{bunker.Data.name}</p>
-            <p>{bunker.Data.stockpile}</p>
-            <p>{bunker.Data.fears}</p>
-          </div>
-        );
-      })}
+            >
+              <button onClick={() => setAwaitingConfirmationBunkerId(null)}>
+                Cancel
+              </button>
+              <button onClick={() => requestBunkerDeletion(bunker.RowKey)}>
+                Confirm
+              </button>
+            </div>
+          ) : (
+            <button
+              style={{
+                position: "absolute",
+                top: "0",
+                right: "0",
+                zIndex: "2",
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setAwaitingConfirmationBunkerId(bunker.RowKey); // Set this bunker to show confirmation buttons
+              }}
+            >
+              X
+            </button>
+          )}
+          <Image
+            src={bunker.ImageURL}
+            alt={bunker.Data["name"] || `Bunker ${index + 1}`}
+            sizes="500px"
+            fill
+            style={{
+              objectFit: "contain",
+            }}
+          />
+        </div>
+      ))}
     </div>
   );
 }

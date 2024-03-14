@@ -7,21 +7,6 @@ import { v4 as uuidv4 } from "uuid";
 import InfoPanel from "./InfoPanel";
 import DisplayBunkerResults from "./DisplayBunkerResults";
 
-function saveJSON(obj, filename) {
-  const a = document.createElement("a");
-  const file = new Blob([JSON.stringify(obj)], { type: "application/json" });
-  a.href = URL.createObjectURL(file);
-  a.download = `${filename}.json`;
-  a.click();
-}
-
-function saveImage(dataURL, filename) {
-  const a = document.createElement("a");
-  a.href = dataURL;
-  a.download = `${filename}.png`;
-  a.click();
-}
-
 export default function UX({
   isMobile,
   showCanvas,
@@ -31,7 +16,6 @@ export default function UX({
   bounds,
   selectedBunker,
   imageViewState,
-  setMinesweeperBunkers,
   minesweeperBunkers,
   setTriggerFetch,
   triggerFetch,
@@ -39,58 +23,69 @@ export default function UX({
   const [result, setResult] = useState(null);
   // Save Canvas as PNG and form data as JSON
   async function saveBunker(data) {
-    if (p5Instance) {
+    try {
+      // Check if the drawing dimensions are valid
       const { minX, minY, maxX, maxY } = canvasDrawingBounds;
       const w = maxX - minX;
       const h = maxY - minY;
 
-      // Extract the cropped area using p5's get() function
-      const croppedImage = p5Instance.createImage(w, h);
-      croppedImage.copy(p5Instance, minX, minY, w, h, 0, 0, w, h);
+      if (w <= 0 || h <= 0) {
+        throw new Error(
+          "Please ensure there is a bunker drawing before saving."
+        );
+      }
 
-      // Now, create an off-screen canvas and draw the cropped image onto it
-      const offScreenCanvas = document.createElement("canvas");
-      offScreenCanvas.style.border = "1px solid red";
-      offScreenCanvas.width = w;
-      offScreenCanvas.height = h;
-      const ctx = offScreenCanvas.getContext("2d");
-      ctx?.drawImage(croppedImage.canvas, 0, 0);
+      if (p5Instance) {
+        // Proceed with the rest of your code for saving the bunker as before
 
-      data.id = `bunker-${uuidv4()}`;
+        const croppedImage = p5Instance.createImage(w, h);
+        croppedImage.copy(p5Instance, minX, minY, w, h, 0, 0, w, h);
 
-      // Convert the off-screen canvas to a data URL and trigger download
-      const dataURL = offScreenCanvas.toDataURL("image/png");
-      // saveImage(dataURL, data.id);
+        const offScreenCanvas = document.createElement("canvas");
+        offScreenCanvas.style.border = "1px solid red";
+        offScreenCanvas.width = w;
+        offScreenCanvas.height = h;
+        const ctx = offScreenCanvas.getContext("2d");
+        ctx.drawImage(croppedImage.canvas, 0, 0);
 
-      const view = imageViewState;
+        data.id = `bunker-${uuidv4()}`;
 
-      // Save JSON data
-      const dataToSave = {
-        bounds,
-        view,
-        data,
-        dataURL,
-        //for image, do the same thing with the dataURL
-        //add chat gpt data
-      };
-      // saveJSON(dataToSave, "bunkers-metadata");
+        const dataURL = offScreenCanvas.toDataURL("image/png");
 
-      // Connect to backend to save in table/blob storage
+        const view = imageViewState;
 
-      await fetch("https://99f-bunker-api.azurewebsites.net/api/SaveToBlob", {
-        method: "POST", // or 'PUT'
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "DELETE, POST, GET, OPTIONS",
-          "Access-Control-Allow-Headers":
-            "Content-Type, Authorization, X-Requested-With",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(dataToSave),
-      });
+        const dataToSave = {
+          bounds,
+          view,
+          data,
+          dataURL,
+        };
 
-      setTriggerFetch(!triggerFetch);
-      setShowCanvas(false); // Optionally hide canvas after saving
+        await fetch("https://99f-bunker-api.azurewebsites.net/api/SaveToBlob", {
+          method: "POST",
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "DELETE, POST, GET, OPTIONS",
+            "Access-Control-Allow-Headers":
+              "Content-Type, Authorization, X-Requested-With",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(dataToSave),
+        });
+
+        setTriggerFetch(!triggerFetch);
+        setShowCanvas(false); // Optionally hide canvas after saving
+      }
+    } catch (error) {
+      // Handle errors gracefully
+      alert(
+        `
+        ERROR! 
+        404: BUNKER NOT FOUND
+
+      DRAW A BUNKER IF YOU HOPE TO SURVIVE
+        `
+      ); // Display a warning to the user
     }
   }
 
@@ -126,18 +121,19 @@ export default function UX({
         </div>
 
         {showCanvas && !result && (
-          <BunkerForm
-            onFormDataChange={handleFormData}
-            result={result}
-            setResult={setResult}
-          />
+          <BunkerForm onFormDataChange={handleFormData} setResult={setResult} />
         )}
 
         {!showCanvas && !result && selectedBunker && (
           <DisplayBunkerProperties selectedBunker={selectedBunker} />
         )}
 
-        {result && <DisplayBunkerResults result={result} />}
+        {(result || selectedBunker) && (
+          <DisplayBunkerResults
+            result={result}
+            selectedBunker={selectedBunker}
+          />
+        )}
 
         {/* else{
         <DisplayBunkerProperties selectedBunker={selectedBunker} />

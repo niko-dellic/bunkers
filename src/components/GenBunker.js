@@ -12,18 +12,24 @@ if (OPENAI_API_KEY) {
   });
 }
 
-export default function GenBunker({ userString, result, setResult }) {
+export default function GenBunker({ onFormDataChange, userData, setResult }) {
   useEffect(() => {
-    if (!userString) return;
+    if (!userData?.prompt) return;
 
-    async function genContent(prompt) {
+    async function genContent(data) {
+      const prompt = data.prompt;
       const completion = await openai.chat.completions.create({
         messages: [{ role: "system", content: prompt }],
         model: "gpt-3.5-turbo",
       });
-      setResult(completion.choices[0].message.content);
-    }
 
-    OPENAI_API_KEY && genContent(userString);
-  }, [userString]);
+      const res = completion.choices[0].message.content;
+      data.result = res;
+
+      console.log(data);
+      onFormDataChange(data);
+      setResult(data);
+    }
+    OPENAI_API_KEY && genContent(userData);
+  }, [userData]);
 }

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import GenBunker from "./GenBunker";
 
-export default function BunkerForm({ onFormDataChange, result, setResult }) {
-  const [userString, setUserString] = useState(null);
+export default function BunkerForm({ onFormDataChange, setResult }) {
+  const [userData, setUserData] = useState(null);
 
   // Function to handle form submission
   const handleSubmit = (e) => {
@@ -10,10 +10,12 @@ export default function BunkerForm({ onFormDataChange, result, setResult }) {
     e.preventDefault(); // Prevent default form submission behavior
     const data = new FormData(e.target); // Create a FormData object from the form
     const formProps = Object.fromEntries(data); // Convert formData to a simple object
-    onFormDataChange(formProps); // Pass the form data object back to the parent component
-
     const str = `${formProps.name} is the thing you always keep by your door/in your pantry/in your backpack for emergencies. You can only have one in your bunker. You choose ${formProps.item}. Your survival team is ${formProps.team}.`;
-    setUserString(str);
+
+    setUserData({
+      ...formProps,
+      prompt: str,
+    });
   };
 
   return (
@@ -54,9 +56,9 @@ export default function BunkerForm({ onFormDataChange, result, setResult }) {
         <button type="submit">Submit</button>
       </form>
       <GenBunker
-        userString={userString}
-        result={result}
+        userData={userData}
         setResult={setResult}
+        onFormDataChange={onFormDataChange}
       />
       ;
     </>
