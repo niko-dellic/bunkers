@@ -1,7 +1,7 @@
 export default function Credits() {
   return (
     <div id="credits">
-      <p>by niko cassie and phil</p>
+      <p>by niko and cassie and phil and eyal</p>
     </div>
   );
 }

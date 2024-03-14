@@ -73,8 +73,6 @@ export default function UX({
         //add chat gpt data
       };
       // saveJSON(dataToSave, "bunkers-metadata");
-      // console.log(dataToSave);
-      // console.log(minesweeperBunkers);
 
       // Connect to backend to save in table/blob storage
 
@@ -111,11 +109,9 @@ export default function UX({
               e.preventDefault();
               e.stopPropagation();
               setShowCanvas(true);
-
-              console.log("X clicked");
             }}
           >
-            + ADD YOUR LAST RESORT LISTING TO AIRBNBUNKER
+            + ADD YOUR AIRBNBUNKER
           </button>
           <button
             onClick={(e) => {

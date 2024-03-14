@@ -7,13 +7,6 @@ export default function CanvasAnimation({
   initialEntry,
   setViewState,
 }) {
-  if (
-    !bunkerCentroids ||
-    bunkerCentroids.length === 0 ||
-    bunkerCentroids.features.length === 0
-  )
-    return;
-
   let currentIndex = 0;
   let animationPaused = false; // New variable to control the pause state
 

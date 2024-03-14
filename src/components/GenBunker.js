@@ -3,16 +3,17 @@ import { useEffect } from "react";
 
 const OPENAI_API_KEY = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
 
-const openai = new OpenAI({
-  apiKey: OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true,
-});
+let openai;
+
+if (OPENAI_API_KEY) {
+  openai = new OpenAI({
+    apiKey: OPENAI_API_KEY,
+    dangerouslyAllowBrowser: true,
+  });
+}
 
 export default function GenBunker({ userString, result, setResult }) {
-  //   const [generatedText, setGeneratedText] = useState('');
-
   useEffect(() => {
-    console.log("use effect called", userString);
     if (!userString) return;
 
     async function genContent(prompt) {
@@ -23,6 +24,6 @@ export default function GenBunker({ userString, result, setResult }) {
       setResult(completion.choices[0].message.content);
     }
 
-    genContent(userString);
+    OPENAI_API_KEY && genContent(userString);
   }, [userString]);
 }

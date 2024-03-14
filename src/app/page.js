@@ -43,7 +43,8 @@ export default function Home() {
       <main id={isMobile ? "main-mobile" : ""}>
         {/* render interactive map once isMobile is not undefined */}
         {isMobile !== undefined && <InteractiveMap isMobile={isMobile} />}
-        {showCredits && <Credits />}
+
+        <Credits />
       </main>
     </>
   );

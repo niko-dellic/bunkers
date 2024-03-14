@@ -26,6 +26,7 @@ import UX from "./UX";
 import Canvas from "./Canvas";
 import CanvasAnimation from "./CanvasAnimation";
 import { ArcLayer } from "@deck.gl/layers";
+import { ScreenGridLayer, HeatmapLayer } from "@deck.gl/aggregation-layers";
 
 import {
   convertToBounds,
@@ -83,22 +84,11 @@ const INITIAL_VIEW_STATE = {
   pitch: 100,
   minPitch: 0,
   maxPitch: 179,
-  minZoom: 15,
+  minZoom: 13.5,
   maxZoom: 22,
 };
 
 export default function InteractiveMap({ isMobile }) {
-  // const [initialViewState, setInitialViewState] = useState({
-  //   // boston
-  //   longitude: -71.08725092308282,
-  //   latitude: 42.360366356946194,
-  //   zoom: 16.5,
-  //   pitch: 100,
-  //   minPitch: 0,
-  //   maxPitch: 179,
-  //   minZoom: 15,
-  //   maxZoom: 22,
-  // });
   const [viewState, setViewState] = useState(INITIAL_VIEW_STATE);
   const [viewStateBounds, setViewStateBounds] = useState({});
   const [initialEntry, setInitialEntry] = useState(false);
@@ -135,7 +125,6 @@ export default function InteractiveMap({ isMobile }) {
     if (info) {
       setSelectedBunker(info);
     } else {
-      console.log("no info");
       setSelectedBunker(null);
     }
   };
@@ -187,7 +176,6 @@ export default function InteractiveMap({ isMobile }) {
   }, [triggerFetch]);
 
   useEffect(() => {
-    console.log("yo");
     if (bunkerCentroids?.features?.length > 0) {
       setFlags(generateRandomFlags(bunkerCentroids));
       // combine the bunker centroids and the minesweeper bunkers
@@ -222,7 +210,7 @@ export default function InteractiveMap({ isMobile }) {
         ...viewState,
         pitch: 0,
         bearing: 0,
-        zoom: 18,
+        zoom: 17.5,
       }));
     }
   }, [showCanvas]);
@@ -325,7 +313,7 @@ export default function InteractiveMap({ isMobile }) {
   //       cleanupAnimation();
   //     };
   //   }
-  // }, [initialEntry, setInitialEntry, bunkerCentroids]); // React to changes in `initialEntry` and `bunkerCentroids`
+  // }, [initialEntry, bunkerCentroids]); // React to changes in `initialEntry` and `bunkerCentroids`
 
   // layers array
   const layers = [
@@ -369,6 +357,37 @@ export default function InteractiveMap({ isMobile }) {
             maskInverted: true,
           }),
     }),
+    viewState.pitch < 10 &&
+      new ScreenGridLayer({
+        id: "screen-grid-layer",
+        data: allBunkerCentroids.features,
+        cellSizePixels: 150,
+        opacity: 0.125,
+        colorRange: [
+          [255, 255, 255, 102],
+          [255, 255, 255, 153],
+          [255, 255, 255, 204],
+          [0, 0, 0, 255],
+        ],
+        getPosition: (d) => d.geometry.coordinates,
+        getWeight: 1,
+      }),
+    // new HeatmapLayer({
+    //   id: "heatmapLayer",
+    //   data: allBunkerCentroids.features,
+    //   getPosition: (d) => d.geometry.coordinates,
+    //   // getWeight: 1,
+    //   radiusPixels: 150,
+    //   colorRange: [
+    //     [255, 255, 255, 0],
+    //     [255, 255, 255, 85],
+    //     [255, 255, 255, 170],
+    //     [255, 255, 255, 255],
+    //   ],
+    //   // threshold: 0.01,
+    //   aggregation: "SUM",
+    // }),
+
     new GeoJsonLayer({
       id: "network-layer",
       data: network,
