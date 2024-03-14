@@ -23,7 +23,7 @@ export default function UX({
   setSelectedBunker,
 }) {
   const [result, setResult] = useState(null);
-  const [showTutorial, setShowTutorial] = useState(true);
+  const [showTutorial, setShowTutorial] = useState(isMobile ? false : true);
 
   // Save Canvas as PNG and form data as JSON
   async function saveBunker(data) {
@@ -95,10 +95,11 @@ export default function UX({
 
   return (
     <div
-      id="controls-wrapper"
+      id={`controls-wrapper`}
+      className={isMobile ? `mobile` : ""}
       style={!showTutorial ? { gridTemplateRows: "auto 1fr" } : {}}
     >
-      <div id="toolbar">
+      <div id="toolbar" className={isMobile ? `mobile` : ""}>
         <button
           onClick={(e) => {
             e.preventDefault();
@@ -110,22 +111,27 @@ export default function UX({
         >
           + ADD YOUR AIRBNBUNKER
         </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowCanvas(false);
-          }}
-          style={{ color: !showCanvas ? "#bdbdbd" : "black" }}
-        >
-          X
-        </button>
+        {showCanvas && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowCanvas(false);
+            }}
+            style={{ color: !showCanvas ? "#bdbdbd" : "black" }}
+          >
+            X
+          </button>
+        )}
         <Tutorials
+          isMobile={isMobile}
           showCanvas={showCanvas}
           showTutorial={showTutorial}
           setShowTutorial={setShowTutorial}
         />
       </div>
-      {!showCanvas && <InfoPanel minesweeperBunkers={minesweeperBunkers} />}
+      {!showCanvas && !isMobile && (
+        <InfoPanel minesweeperBunkers={minesweeperBunkers} />
+      )}
       {showCanvas && !result && (
         <BunkerForm onFormDataChange={handleFormData} setResult={setResult} />
       )}

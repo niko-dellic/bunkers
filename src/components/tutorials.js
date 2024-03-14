@@ -71,6 +71,8 @@ export default function Tutorials({
       </div>
     </div>
   ) : (
-    <button onClick={(e) => setShowTutorial(true)}>Show Tutorials</button>
+    <button id="show-tutorials" onClick={(e) => setShowTutorial(true)}>
+      Show Tutorials
+    </button>
   );
 }

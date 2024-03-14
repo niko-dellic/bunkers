@@ -37,7 +37,7 @@ export default function Home() {
     longitude: -71.08725092308282,
     latitude: 42.360366356946194,
     zoom: 16.5,
-    pitch: 100,
+    pitch: isMobile ? 0 : 110,
     minPitch: 0,
     maxPitch: 179,
     minZoom: 13.5,
@@ -114,6 +114,7 @@ export default function Home() {
           <div className="border-effect">
             <div
               id="canvas-wrapper"
+              className={isMobile ? "mobile" : ""}
               onMouseEnter={(e) => {
                 if (!showCanvas) {
                   togglePlanView(true);
@@ -163,6 +164,7 @@ export default function Home() {
               setInitialEntry={setInitialEntry}
               triggerFetch={triggerFetch}
               setTriggerFetch={setTriggerFetch}
+              isMobile={isMobile}
             />
           </div>
 

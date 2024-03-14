@@ -7,6 +7,7 @@ export default function BunkerGallery({
   setInitialEntry,
   triggerFetch,
   setTriggerFetch,
+  isMobile,
 }) {
   const [awaitingConfirmationBunkerId, setAwaitingConfirmationBunkerId] =
     useState(null);
@@ -30,7 +31,7 @@ export default function BunkerGallery({
   };
 
   return (
-    <div id="bunker-gallery">
+    <div id="bunker-gallery" className={isMobile ? "mobile" : ""}>
       {minesweeperBunkers.map((bunker, index) => (
         <div
           key={index}

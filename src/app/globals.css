@@ -92,6 +92,13 @@ form {
 
 }
 
+
+#toolbar.mobile {}
+
+#show-tutorials {
+  grid-column: 1/-1;
+}
+
 /* form children except submit */
 form>*:not(:last-child) {
   display: grid;
@@ -141,11 +148,22 @@ a {
   overflow-y: auto;
 }
 
+#controls-wrapper.mobile {
+  grid-template-rows: auto auto;
+  height: auto;
+}
+
 #canvas-wrapper {
   position: relative;
   width: 100%;
   height: calc(100vh - 30px);
 }
+
+#canvas-wrapper.mobile {
+  height: 75vh;
+}
+
+
 
 .react-p5-wrapper {
   cursor: crosshair;
@@ -187,17 +205,17 @@ a {
 }
 
 #tutorial-steps p {
-
   grid-column: 1/-1;
 }
 
 #bunker-gallery {
-  /* display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  width: fit-content; */
+
   display: grid;
   grid-template-columns: repeat(5, 1fr);
+}
+
+#bunker-gallery.mobile {
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .bunker-gallery-item {
@@ -208,6 +226,11 @@ a {
   border: 5px outset white;
   padding: 1rem;
 }
+
+#bunker-gallery.mobile .bunker-gallery-item {
+  height: 100px;
+}
+
 
 .bunker-gallery-item:hover {
   border: 5px inset #c0c0c0;
