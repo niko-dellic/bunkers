@@ -80,9 +80,6 @@ form,
   border-right: 2px solid #7f7f7f;
   padding: 3px;
   border-style: outset;
-  /* display: grid; */
-  /* grid-template-rows: 1fr 1fr; */
-  /* width: 100%; */
 }
 
 form {
@@ -138,6 +135,10 @@ a {
 
 #controls-wrapper {
   text-transform: uppercase;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  height: calc(100vh - 30px);
+  overflow-y: auto;
 }
 
 #canvas-wrapper {
@@ -176,7 +177,7 @@ a {
 #tutorial-steps {
   position: absolute;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr auto;
   grid-template-rows: auto auto;
   align-items: end;
   z-index: 2;

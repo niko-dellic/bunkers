@@ -58,7 +58,7 @@ export default function BunkerForm({ onFormDataChange, setResult }) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <h2>Great pick. Give us a sense of your bunker</h2>
+      <h2>Bunker Builder</h2>
       <label>
         What is the thing you always keep by your door/in your pantry/in your
         backpack for emergencies

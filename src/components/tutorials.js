@@ -1,7 +1,11 @@
 import { useState } from "react";
 import Image from "next/image";
 
-export default function Tutorials({ showCanvas }) {
+export default function Tutorials({
+  showCanvas,
+  showTutorial,
+  setShowTutorial,
+}) {
   const [currentStep, setCurrentStep] = useState(0);
 
   // Define tutorial steps grouped by the showCanvas value
@@ -56,14 +60,17 @@ export default function Tutorials({ showCanvas }) {
   // Render the current step based on showCanvas value
   const { gif, alt, description } = tutorials[currentStep];
 
-  return (
+  return showTutorial ? (
     <div id="tutorials-wrapper">
       <Image src={gif} alt={alt} layout="fill" priority={true} sizes="" />
       <div id="tutorial-steps">
         <p>{description}</p>
         <button onClick={previousStep}>{"<"}</button>
         <button onClick={nextStep}>{">"}</button>
+        <button onClick={(e) => setShowTutorial(false)}>Close</button>
       </div>
     </div>
+  ) : (
+    <button onClick={(e) => setShowTutorial(true)}>Show Tutorials</button>
   );
 }

@@ -23,6 +23,8 @@ export default function UX({
   setSelectedBunker,
 }) {
   const [result, setResult] = useState(null);
+  const [showTutorial, setShowTutorial] = useState(true);
+
   // Save Canvas as PNG and form data as JSON
   async function saveBunker(data) {
     try {
@@ -92,7 +94,10 @@ export default function UX({
   }
 
   return (
-    <div id="controls-wrapper">
+    <div
+      id="controls-wrapper"
+      style={!showTutorial ? { gridTemplateRows: "auto 1fr" } : {}}
+    >
       <div id="toolbar">
         <button
           onClick={(e) => {
@@ -114,9 +119,13 @@ export default function UX({
         >
           X
         </button>
-        <Tutorials showCanvas={showCanvas} />
+        <Tutorials
+          showCanvas={showCanvas}
+          showTutorial={showTutorial}
+          setShowTutorial={setShowTutorial}
+        />
       </div>
-      <InfoPanel minesweeperBunkers={minesweeperBunkers} />
+      {!showCanvas && <InfoPanel minesweeperBunkers={minesweeperBunkers} />}
       {showCanvas && !result && (
         <BunkerForm onFormDataChange={handleFormData} setResult={setResult} />
       )}
