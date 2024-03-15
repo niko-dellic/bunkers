@@ -25,6 +25,13 @@ export default function DisplayBunkerResults({
   return (
     (userData || selectedBunker.Data) && (
       <div id={"selected-bunker"}>
+        <div className="access-code">
+          <span>YOUR BUNKER ACCESS CODE IS: </span>
+          <span className="bold">
+            {userData?.id || selectedBunker?.RowKey || null}
+          </span>
+          <span> TAKE A PICTURE.</span>
+        </div>
         <div>
           {imageResult ? (
             <Image
