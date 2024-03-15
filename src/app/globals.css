@@ -73,7 +73,7 @@ body {
 
 button,
 form,
-#controls-wrapper div {
+#controls-wrapper div:not(#info-title) div:not(.info) div:not(#population){
   background-color: #bdbdbd;
   border: 2px solid white;
   border-bottom: 2px solid #7f7f7f;
@@ -206,6 +206,15 @@ a {
   grid-column: 1/-1;
 }
 
+#gen-image-display {
+  position: relative;
+}
+
+/* #gen-image-display * {
+  padding: 0 !important;
+  margin: 0 !important;
+} */
+
 #bunker-gallery {
 
   display: grid;
@@ -244,6 +253,49 @@ a {
 
 }
 
-.generated-image {
-  /* filter: grayscale(1); */
+.info {
+  position: relative;
+  height: fit-content;
+  grid-column: 1/-1;
+  overflow: hidden;
+  display: inline-block;
+  /* text-align: center; */
+  margin-top: 50px;
+  font-size: 30pt;
+  border: none;
+  border-bottom: 2px solid #7f7f7f;
+  border-right: 2px solid #7f7f7f;
+  padding: 3px;
+  border-style: outset;
+  
 }
+
+#population{
+  background-color: #000000; /* Red */
+  color: red;
+  display: inline-block;
+  padding: 2px 2px;
+  margin-top: 10px;
+  border: none;
+  font-size: 20px;
+  font-family: 'Digital-7', fallback, serif;
+}
+
+@font-face {
+  font-family: 'Digital-7';
+  src: url('/assets/fonts/digital-7.ttf') format('truetype'),
+}
+
+#info-title{
+  display: inline-block;
+  border: 5px solid white;
+  background-color: rgb(0, 85, 255);
+  color: white;
+  border-bottom: 5px solid #808080;
+  border-right: 5px solid #808080;
+  width: 100%;
+}
+
+/* #population div:not(.) {
+
+} */
