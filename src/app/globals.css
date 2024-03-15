@@ -333,7 +333,6 @@ a {
   font-family: 'Digital-7', fallback, serif;
 }
 
-
 #info-title {
   display: inline-block;
   /* border: 5px solid white; */
@@ -363,8 +362,17 @@ a {
   /* MIN height */
 }
 
-.store-item {
-  width: 30%;
-  height: 15vh;
+.store-item-name {
   overflow: hidden;
+  font-size: 10pt;
+  width: 100%;
+}
+
+
+.store-item-image {
+  width: 100px;
+  height: auto;
+  image-rendering: pixelated;
+  font-size: 10pt;
+
 }

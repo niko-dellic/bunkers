@@ -4,6 +4,7 @@ const nextConfig = {
     domains: [
       "99fdata.blob.core.windows.net",
       "oaidalleapiprodscus.blob.core.windows.net",
+      "1.bp.blogspot.com",
     ],
   },
 };
