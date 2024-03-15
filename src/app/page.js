@@ -66,11 +66,11 @@ export default function Home() {
   useEffect(() => {
     // Function to handle key down
     const handleKeyDown = (e) => {
-      if (e.key === " ") {
-        // Prevent default action to avoid any side effect like scrolling
-        e.preventDefault();
-        setShowCredits((prevShowCredits) => !prevShowCredits);
-      }
+      // if (e.key === " ") {
+      //   // Prevent default action to avoid any side effect like scrolling
+      //   e.preventDefault();
+      //   setShowCredits((prevShowCredits) => !prevShowCredits);
+      // }
     };
 
     // Add event listener to the window

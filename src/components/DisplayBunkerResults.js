@@ -22,7 +22,6 @@ export default function DisplayBunkerResults({
         parsedItems.push({});
       }
     }
-    console.log(parsedItems);
   }
 
   return (
@@ -67,6 +66,17 @@ export default function DisplayBunkerResults({
           <div id="store-items-container">
             {/* for each key value pair in parsedItems */}
             {parsedItems?.map((item, index) => {
+              {
+                /* console.log(item?.ItemImageURL); */
+              }
+
+              let imgURL = item?.ItemImageURL || null;
+
+              {
+                /* replace all instances of badboys with & */
+              }
+              const newURL = imgURL?.replace(/badboys/g, "&");
+
               return (
                 <div
                   key={index}
@@ -74,9 +84,7 @@ export default function DisplayBunkerResults({
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <img
-                    src={
-                      item?.ItemImageURL || "/assets/img/gray_placeholder.png"
-                    }
+                    src={newURL || "/assets/img/gray_placeholder.png"}
                     className="store-item-image"
                     alt={"Item Image"}
                   />
