@@ -113,11 +113,15 @@ function FormContents() {
     <>
       <h2>Make your own bunker!</h2>
       <label style={{ margin: "1em 0" }}>
-        {"What are you stockpiling?"}
+        Name your bunker
+        <input type="text" name="name" />
+      </label>
+      <label style={{ margin: "1em 0" }}>
+        What are you stockpiling?
         <input type="text" name="item" />
       </label>
       <label style={{ margin: "1em 0" }}>
-        {"Is your bunker part of the collective prepper network?"}
+        Is your bunker part of the collective prepper network?
         <select name="item">
           <option value="yes">Yes, open to trading</option>
           <option value="no">No, I'm off grid</option>
@@ -133,7 +137,7 @@ function FormContents() {
         ))}
       </label> */}
       <label style={{ margin: "1em 0" }}>
-        {`What's your bunkers vibe?`}
+        What is your bunkers vibe?"
         <textarea
           name="vibe"
           style={{ resize: "none", width: "100%", margin: "1em 0" }}

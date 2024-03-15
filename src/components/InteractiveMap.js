@@ -59,7 +59,7 @@ export default function InteractiveMap({
 
   useEffect(() => {
     preventDefaultInputs();
-    fetch("./assets/geojson/boston_bunkers.geojson")
+    fetch("./assets/geojson/starter_map.geojson")
       .then((res) => res.json())
       .then((data) => {
         // Create a unique id for each feature
