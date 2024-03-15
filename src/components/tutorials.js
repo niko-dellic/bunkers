@@ -71,7 +71,11 @@ export default function Tutorials({
       </div>
     </div>
   ) : (
-    <button id="show-tutorials" onClick={(e) => setShowTutorial(true)}>
+    <button
+      id="show-tutorials"
+      style={showCanvas ? { gridColumn: "1/-1" } : {}}
+      onClick={(e) => setShowTutorial(true)}
+    >
       TUTORIAL
     </button>
   );

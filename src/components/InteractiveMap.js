@@ -271,21 +271,21 @@ export default function InteractiveMap({
             maskInverted: true,
           }),
     }),
-    viewState.pitch < 10 &&
-      new ScreenGridLayer({
-        id: "screen-grid-layer",
-        data: allBunkerCentroids.features,
-        cellSizePixels: 150,
-        opacity: 0.125,
-        colorRange: [
-          [255, 255, 255, 102],
-          [255, 255, 255, 153],
-          [255, 255, 255, 204],
-          [0, 0, 0, 255],
-        ],
-        getPosition: (d) => d.geometry.coordinates,
-        getWeight: 1,
-      }),
+    // viewState.pitch < 10 &&
+    //   new ScreenGridLayer({
+    //     id: "screen-grid-layer",
+    //     data: allBunkerCentroids.features,
+    //     cellSizePixels: 150,
+    //     opacity: 0.125,
+    //     colorRange: [
+    //       [255, 255, 255, 102],
+    //       [255, 255, 255, 153],
+    //       [255, 255, 255, 204],
+    //       [0, 0, 0, 255],
+    //     ],
+    //     getPosition: (d) => d.geometry.coordinates,
+    //     getWeight: 1,
+    //   }),
     // new HeatmapLayer({
     //   id: "heatmapLayer",
     //   data: allBunkerCentroids.features,
@@ -456,8 +456,9 @@ export default function InteractiveMap({
       getTooltip={({ object }) => {
         if (!object || !object.properties?.text) return null;
         return {
-          html: `<div class="border-effect">${object.properties.text}</div>`,
+          html: `<div>${object.properties.text}</div>`,
           style: {
+            border: "5px outset white",
             backgroundColor: "#bdbdbd",
             color: "black",
             width: "300px",

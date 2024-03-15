@@ -93,10 +93,8 @@ form {
 }
 
 
-#toolbar.mobile {}
-
 #show-tutorials {
-  grid-column: 1/-1;
+  /* grid-column: 1/-1; */
 }
 
 /* form children except submit */
