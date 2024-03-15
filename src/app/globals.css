@@ -315,11 +315,14 @@ a {
   top: 1px;
   left: 1px;
   color: red;
+
+}
+
+.danger {
   padding: 2px 2px;
   border: none;
   font-family: 'Digital-7', fallback, serif;
   font-size: 20px;
-
 }
 
 #population {
@@ -350,6 +353,7 @@ a {
   height: 3rem;
   border-style: outset;
 }
+
 
 #store-items-container {
   position: relative;

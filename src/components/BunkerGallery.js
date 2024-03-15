@@ -123,7 +123,10 @@ export default function BunkerGallery({
               }}
             />
             {/* json stringify  */}
-            <div className="screen">CODE: {bunker.RowKey}</div>
+            <div className="screen">
+              <span className="danger">CODE:</span>
+              <span>{bunker.RowKey}</span>
+            </div>
           </div>
         );
       })}
