@@ -74,6 +74,7 @@ export default function Tutorials({
         }}
         // layout="fill"
         // objectFit="cover"
+        // priority={true}
       />
       <div id="tutorial-steps">
         <p>{description}</p>

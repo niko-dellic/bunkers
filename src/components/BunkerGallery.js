@@ -42,6 +42,10 @@ export default function BunkerGallery({
           <div
             key={index}
             className="bunker-gallery-item"
+            onMouseEnter={() => {
+              console.log(bunker);
+              console.log(parsed);
+            }}
             onClick={() => {
               window.scrollTo(0, 0);
               setInitialEntry(true);
