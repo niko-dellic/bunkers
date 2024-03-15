@@ -23,7 +23,7 @@ export default function UX({
   setSelectedBunker,
 }) {
   const [result, setResult] = useState(null);
-  const [showTutorial, setShowTutorial] = useState(isMobile ? false : true);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   // Save Canvas as PNG and form data as JSON
   async function saveBunker(data) {

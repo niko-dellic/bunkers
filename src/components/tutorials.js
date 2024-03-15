@@ -72,7 +72,7 @@ export default function Tutorials({
     </div>
   ) : (
     <button id="show-tutorials" onClick={(e) => setShowTutorial(true)}>
-      Show Tutorials
+      TUTORIAL
     </button>
   );
 }
