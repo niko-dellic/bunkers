@@ -321,8 +321,8 @@ a {
 .danger {
   padding: 2px 2px;
   border: none;
-  font-family: 'Digital-7', fallback, serif;
-  font-size: 20px;
+  /* font-family: 'Digital-7', fallback, serif; */
+  /* font-size: 10px; */
 }
 
 #population {
@@ -373,10 +373,33 @@ a {
 }
 
 
+.store-item {
+  /* center */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+}
+
+
 .store-item-image {
   width: 100px;
   height: auto;
   image-rendering: pixelated;
   font-size: 10pt;
 
+}
+
+.access-code {
+  padding: 1rem 0;
+}
+
+.access-code:not(:first-child) {
+
+  background-color: black;
+  color: red;
+}
+
+.bold {
+  font-weight: bold;
 }
