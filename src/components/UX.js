@@ -23,7 +23,8 @@ export default function UX({
   setSelectedBunker,
 }) {
   const [result, setResult] = useState(null);
-  const [showTutorial, setShowTutorial] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(isMobile ? false : true);
+  const [imageResult, setImageResult] = useState(null);
 
   // Save Canvas as PNG and form data as JSON
   async function saveBunker(data) {
@@ -107,6 +108,7 @@ export default function UX({
             setShowCanvas(true);
             setResult(null);
             setSelectedBunker(null);
+            setImageResult(null);
           }}
         >
           + ADD YOUR AIRBNBUNKER
@@ -133,13 +135,21 @@ export default function UX({
         <InfoPanel minesweeperBunkers={minesweeperBunkers} />
       )}
       {showCanvas && !result && (
-        <BunkerForm onFormDataChange={handleFormData} setResult={setResult} />
+        <BunkerForm
+          onFormDataChange={handleFormData}
+          setResult={setResult}
+          setImageResult={setImageResult}
+        />
       )}
       {!showCanvas && !result && selectedBunker && (
         <DisplayBunkerProperties selectedBunker={selectedBunker} />
       )}
       {(result || selectedBunker) && (
-        <DisplayBunkerResults result={result} selectedBunker={selectedBunker} />
+        <DisplayBunkerResults
+          result={result}
+          selectedBunker={selectedBunker}
+          imageResult={imageResult}
+        />
       )}
       {/* else{
         <DisplayBunkerProperties selectedBunker={selectedBunker} />
