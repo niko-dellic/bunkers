@@ -37,7 +37,7 @@ export default function Home() {
     longitude: -71.08725092308282,
     latitude: 42.360366356946194,
     zoom: 16.5,
-    pitch: isMobile || isMobile == undefined ? 0 : 110,
+    pitch: !isMobile || isMobile !== undefined ? 110 : 0,
     minPitch: 0,
     maxPitch: 179,
     minZoom: 13.5,

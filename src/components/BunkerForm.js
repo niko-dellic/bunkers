@@ -107,7 +107,7 @@ export default function BunkerForm({
         ))}
       </label> */}
       <label style={{ display: "block" }}>
-        What's your bunkers vibe?
+        {`What's your bunkers vibe?`}
         <textarea
           name="vibe"
           style={{ resize: "none", width: "100%", margin: "10px 0" }}
