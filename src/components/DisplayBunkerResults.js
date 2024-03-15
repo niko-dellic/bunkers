@@ -16,11 +16,9 @@ export default function DisplayBunkerResults({
     // parse the items array
     parsedItems = JSON.parse(objectToMap.Items);
 
-    // if less than 3, push 2 empties
-    if (parsedItems.length < 3) {
-      for (let i = 0; i <= 3 - parsedItems.length; i++) {
-        parsedItems.push({});
-      }
+    // if less than 3, push empty objects until 3
+    while (parsedItems.length < 3) {
+      parsedItems.push(null);
     }
   }
 
@@ -67,14 +65,9 @@ export default function DisplayBunkerResults({
             {/* for each key value pair in parsedItems */}
             {parsedItems?.map((item, index) => {
               {
-                /* console.log(item?.ItemImageURL); */
+                /* console.log(item?.ItemImageURL || null); */
               }
-
               let imgURL = item?.ItemImageURL || null;
-
-              {
-                /* replace all instances of badboys with & */
-              }
               const newURL = imgURL?.replace(/badboys/g, "&");
 
               return (
