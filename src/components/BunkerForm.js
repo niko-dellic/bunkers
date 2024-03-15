@@ -48,7 +48,6 @@ export default function BunkerForm({
 
     async function genImage(data) {
       const prompt = data.result;
-      //TURNING OFF GENERATION WHILE IMAGE ISSUE IS FIXED
       const image = await openai.images.generate({
         prompt:
           "2d game graphics pixel art, view from above isometric, minesweeper, greytone" +
@@ -71,7 +70,7 @@ export default function BunkerForm({
       } catch (err) {
         // add a placeholder image if the image generation fails
         alert("Image generation failed. Please try again.");
-        formProps.genImageURL = "./assets/img/placeholder.png";
+        formProps.genImageURL = "/assets/img/placeholder.png";
       }
     }
     setImageResult(formProps.genImageURL);
@@ -103,7 +102,7 @@ export default function BunkerForm({
         disabled={isSubmitting}
         style={{ backgroundColor: isSubmitting ? "grey" : "initial" }}
       >
-        Submit
+        Build bunker
       </button>
     </form>
   );
@@ -112,9 +111,17 @@ export default function BunkerForm({
 function FormContents() {
   return (
     <>
-      <label>
-        What are you stockpiling?
+      <h2>Make your own bunker!</h2>
+      <label style={{ margin: "1em 0" }}>
+        {"What are you stockpiling?"}
         <input type="text" name="item" />
+      </label>
+      <label style={{ margin: "1em 0" }}>
+        {"Is your bunker part of the collective prepper network?"}
+        <select name="item">
+          <option value="yes">Yes, open to trading</option>
+          <option value="no">No, I'm off grid</option>
+        </select>
       </label>
       {/* <label style={{ display: "block" }}>
         You can only have one in your bunker. What do you choose?
@@ -125,17 +132,24 @@ function FormContents() {
           </div>
         ))}
       </label> */}
-      <label style={{ display: "block" }}>
+      <label style={{ margin: "1em 0" }}>
         {`What's your bunkers vibe?`}
         <textarea
           name="vibe"
-          style={{ resize: "none", width: "100%", margin: "10px 0" }}
+          style={{ resize: "none", width: "100%", margin: "1em 0" }}
         />
       </label>
-      <label style={{ display: "block" }}>
+      <label style={{ margin: "1em 0" }}>
         What world ending scenario are you most afraid of?
         <textarea
           name="fear"
+          style={{ resize: "none", width: "100%", margin: "10px 0" }}
+        />
+      </label>
+      <label style={{ margin: "1em 0" }}>
+        What are the names of the preppers in your survival team?
+        <textarea
+          name="team"
           style={{ resize: "none", width: "100%", margin: "10px 0" }}
         />
       </label>
