@@ -22,8 +22,8 @@ export default function UX({
   triggerFetch,
   setSelectedBunker,
 }) {
-  const [result, setResult] = useState(null);
-  const [showTutorial, setShowTutorial] = useState(isMobile ? false : true);
+  const [userData, setUserData] = useState(null);
+  const [showTutorial, setShowTutorial] = useState(false);
   const [imageResult, setImageResult] = useState(null);
 
   // Save Canvas as PNG and form data as JSON
@@ -78,6 +78,8 @@ export default function UX({
 
         setTriggerFetch(!triggerFetch);
         setShowCanvas(false); // Optionally hide canvas after saving
+        setUserData(null);
+        setImageResult(null);
       }
     } catch (error) {
       // Handle errors gracefully
@@ -106,9 +108,8 @@ export default function UX({
             e.preventDefault();
             e.stopPropagation();
             setShowCanvas(true);
-            setResult(null);
             setSelectedBunker(null);
-            setImageResult(null);
+            setUserData(null);
           }}
         >
           + ADD YOUR AIRBNBUNKER
@@ -134,26 +135,27 @@ export default function UX({
       {!showCanvas && !isMobile && (
         <InfoPanel minesweeperBunkers={minesweeperBunkers} />
       )}
-      {showCanvas && !result && (
-        <BunkerForm
-          onFormDataChange={handleFormData}
-          setResult={setResult}
-          setImageResult={setImageResult}
-        />
-      )}
-      {!showCanvas && !result && selectedBunker && (
-        <DisplayBunkerProperties selectedBunker={selectedBunker} />
-      )}
-      {(result || selectedBunker) && (
+      {(userData || selectedBunker) && (
         <DisplayBunkerResults
-          result={result}
           selectedBunker={selectedBunker}
+          userData={userData}
           imageResult={imageResult}
         />
       )}
-      {/* else{
-        <DisplayBunkerProperties selectedBunker={selectedBunker} />
-      } */}
+      {showCanvas && (
+        <BunkerForm
+          onFormDataChange={handleFormData}
+          userData={userData}
+          setUserData={setUserData}
+          setImageResult={setImageResult}
+        />
+      )}
+      {/* {!showCanvas && selectedBunker && (
+        <DisplayBunkerProperties
+          selectedBunker={selectedBunker}
+          imageResult={imageResult}
+        />
+      )} */}
     </div>
   );
 }

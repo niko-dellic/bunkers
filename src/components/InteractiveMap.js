@@ -183,7 +183,9 @@ export default function InteractiveMap({
           maskId: "geofence",
           maskByInstance: true,
           pickable: true,
-          onClick: () => setSelectedBunker(b),
+          onHover: () => {
+            setSelectedBunker(b);
+          },
         });
       } catch (error) {
         console.error("Failed to load image:", error);
@@ -204,15 +206,15 @@ export default function InteractiveMap({
 
     const view = JSON.parse(selectedBunker.View);
 
-    setViewState({
-      ...viewState,
-      pitch: 0,
-      zoom: view.zoom,
-      latitude: view.latitude,
-      longitude: view.longitude,
-      // transitionDuration: 1500,
-      // transitionInterpolator: new FlyToInterpolator(),
-    });
+    // setViewState({
+    //   ...viewState,
+    //   pitch: 0,
+    //   zoom: view.zoom,
+    //   latitude: view.latitude,
+    //   longitude: view.longitude,
+    //   transitionDuration: 1500,
+    //   transitionInterpolator: new FlyToInterpolator(),
+    // });
   }, [selectedBunker]);
 
   // useEffect(() => {

@@ -82,6 +82,11 @@ form,
   border-style: outset;
 }
 
+/* if it has #generated-image */
+#controls-wrapper:has(.generated-image) {
+  grid-template-rows: auto auto;
+}
+
 form {
   display: grid;
 }
@@ -90,11 +95,6 @@ form {
   display: grid;
   grid-template-columns: 1fr auto;
 
-}
-
-
-#show-tutorials {
-  /* grid-column: 1/-1; */
 }
 
 /* form children except submit */
@@ -242,4 +242,8 @@ a {
   place-self: center;
   grid-column: 1/-1;
 
+}
+
+.generated-image {
+  /* filter: grayscale(1); */
 }

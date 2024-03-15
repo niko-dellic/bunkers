@@ -1,41 +1,66 @@
 import Image from "next/image";
 
 export default function DisplayBunkerResults({
-  result,
+  userData,
   selectedBunker,
   imageResult,
 }) {
-  if (selectedBunker) {
-    console.log("bunker!!", selectedBunker.item);
+  // Determine which object to use for mapping
+  const objectToMap = userData || selectedBunker;
+  let parsedData = null;
+  if (objectToMap && !userData && objectToMap?.Data) {
+    // parse the data from the selectedBunker
+    parsedData = JSON.parse(objectToMap?.Data);
   }
 
   return (
-    <>
-      <div>
-        {imageResult && (
+    (userData || selectedBunker.Data) && (
+      <>
+        {imageResult ? (
           <Image
-            src={imageResult.imgUrl}
-            //src="/assets/img/bunker.png"
+            src={imageResult}
             width={256}
             height={256}
             alt="Generated Image"
+            style={{
+              width: "100%",
+              height: "auto",
+              imageRendering: "pixelated",
+            }}
+            className={"generated-image"}
+          />
+        ) : parsedData?.genImageURL ? (
+          <Image
+            src={parsedData?.genImageURL}
+            width={256}
+            height={256}
+            alt="Generated Image"
+            style={{
+              width: "100%",
+              height: "auto",
+              imageRendering: "pixelated",
+            }}
+            className={"generated-image"}
+          />
+        ) : (
+          <Image
+            src="/assets/gif/loading.gif"
+            width={72}
+            height={72}
+            alt="Loading"
           />
         )}
-      </div>
-
-      <div>
-        {result &&
-          Object.entries(result).forEach(([key, value]) => {
-            <p>
-              {key}: {value}
-            </p>;
-          })}
-        {/* {result
-          ? JSON.stringify(result, null, 2) //both are met
-          : selectedBunker //else, if just this condition is met
-          ? JSON.stringify(selectedBunker, null, 2) //then do this one
-          : "No results to display"} */}
-      </div>
-    </>
+        {objectToMap.result && (
+          <div>
+            <p>{objectToMap.result}</p>
+          </div>
+        )}
+        {parsedData?.result && (
+          <div>
+            <p>{parsedData.result}</p>
+          </div>
+        )}
+      </>
+    )
   );
 }

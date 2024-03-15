@@ -21,16 +21,13 @@ const items = [
 
 export default function BunkerForm({
   onFormDataChange,
-  setResult,
+  userData,
+  setUserData,
   setImageResult,
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false); // Track submission state
 
-  const handleSubmit = async (e) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setIsSubmitting(true); // Disable the button and indicate submission
-
+  const storeFormData = async (e) => {
     const data = new FormData(e.target);
     const formProps = Object.fromEntries(data);
     //const str = `${formProps.name} is the thing you always keep by your door/in your pantry/in your backpack for emergencies. You can only have one in your bunker. You choose ${formProps.item}. Your survival team is ${formProps.team}.`;
@@ -45,14 +42,8 @@ export default function BunkerForm({
         model: "gpt-3.5-turbo",
       });
 
-      console.log(completion);
-
       const res = completion.choices[0].message.content;
       data.result = res;
-
-      onFormDataChange(data);
-      setResult(data);
-      setIsSubmitting(false); // Re-enable the button after submission
     }
 
     async function genImage(data) {
@@ -69,29 +60,58 @@ export default function BunkerForm({
         model: "dall-e-3",
       });
 
-      const imgUrl = image.data[0].url;
-      data.imgUrl = imgUrl; //TURN BACK ON WHEN IMAGE ISSUE IS FIXED
-      //data.imgUrl = "./assets/img/placeholder.png";
-      console.log("Recieved image", imgUrl);
-
-      onFormDataChange(data);
-      // setIsSubmitting(false); // Re-enable the button after submission
-      setImageResult(data);
+      data.genImageURL = image.data[0].url;
     }
 
     if (OPENAI_API_KEY) {
       await genContent(formProps);
-      if (formProps.result) {
-        console.log("gpt recieved", formProps.result);
+      setUserData(formProps);
+      try {
         await genImage(formProps);
+      } catch (err) {
+        // add a placeholder image if the image generation fails
+        alert("Image generation failed. Please try again.");
+        formProps.genImageURL = "./assets/img/placeholder.png";
       }
-    } else {
-      setIsSubmitting(false); // Ensure button is re-enabled if API key is missing
     }
+    setImageResult(formProps.genImageURL);
+    setUserData(formProps);
+  };
+
+  const handleSubmit = async (data) => {
+    onFormDataChange(data);
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form
+      onSubmit={async (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        setIsSubmitting(true); // Disable the button and indicate submission
+
+        if (!userData) {
+          await storeFormData(e);
+        } else {
+          await handleSubmit(userData);
+        }
+        setIsSubmitting(false); // Re-enable the button after submission
+      }}
+    >
+      {!userData && <FormContents />}
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        style={{ backgroundColor: isSubmitting ? "grey" : "initial" }}
+      >
+        Submit
+      </button>
+    </form>
+  );
+}
+
+function FormContents() {
+  return (
+    <>
       <h2>Bunker Builder</h2>
       <label>
         What are you stockpiling?
@@ -120,13 +140,6 @@ export default function BunkerForm({
           style={{ resize: "none", width: "100%", margin: "10px 0" }}
         />
       </label>
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        style={{ backgroundColor: isSubmitting ? "grey" : "initial" }}
-      >
-        Submit
-      </button>
-    </form>
+    </>
   );
 }
