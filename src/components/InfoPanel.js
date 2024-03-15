@@ -1,30 +1,21 @@
+import Image from "next/image";
+
 export default function InfoPanel({ minesweeperBunkers }) {
   return (
-    // <div>
-    //   <h2>Welcome to BunkerTown, MA</h2>
-    //   <p>
-    //     Population:
-    //     {minesweeperBunkers.length}
-    //   </p>
-    //   <p>Top items stockpiled:</p>
-    //   {/* TO DO - add gpt data looking at top items */}
-    // </div>
-
-    <div class="info">
+    <div className="info">
       <div style={{ display: "flex", justifyContent: "center" }}>
-        <img
+        <Image
           src="/assets/img/smile.png"
-          alt="Description of image"
-          style={{ width: "50px", paddingTop: "10px" }}
+          alt="smiley"
+          height={50}
+          width={50}
+          style={{ height: "auto", paddingTop: "10px" }}
         />
       </div>
-      <div id="info-title">Welcome to BunkerMatch</div>
-      <div id="population">
-        Population:
-        {minesweeperBunkers.length}
-      </div>
+      <p id="info-title">Welcome to BunkerMatch</p>
+      <div id="population">Population: {minesweeperBunkers.length}</div>
 
-      <p class="instructions">
+      <p className="instructions">
         Browse the map and find a place to create your new emergency shelter.
       </p>
     </div>

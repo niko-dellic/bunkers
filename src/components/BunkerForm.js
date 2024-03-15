@@ -112,7 +112,6 @@ export default function BunkerForm({
 function FormContents() {
   return (
     <>
-      <h2>Bunker Builder</h2>
       <label>
         What are you stockpiling?
         <input type="text" name="item" />

@@ -165,6 +165,8 @@ export default function Home() {
               triggerFetch={triggerFetch}
               setTriggerFetch={setTriggerFetch}
               isMobile={isMobile}
+              viewState={viewState}
+              setViewState={setViewState}
             />
           </div>
 

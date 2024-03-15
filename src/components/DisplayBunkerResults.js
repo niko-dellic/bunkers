@@ -15,7 +15,7 @@ export default function DisplayBunkerResults({
 
   return (
     (userData || selectedBunker.Data) && (
-      <>
+      <div id={"selected-bunker"}>
         {imageResult ? (
           <Image
             src={imageResult}
@@ -50,17 +50,9 @@ export default function DisplayBunkerResults({
             alt="Loading"
           />
         )}
-        {objectToMap.result && (
-          <div>
-            <p>{objectToMap.result}</p>
-          </div>
-        )}
-        {parsedData?.result && (
-          <div>
-            <p>{parsedData.result}</p>
-          </div>
-        )}
-      </>
+        {objectToMap.result && <div>{objectToMap.result}</div>}
+        {parsedData?.result && <div>{parsedData.result}</div>}
+      </div>
     )
   );
 }

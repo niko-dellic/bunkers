@@ -61,20 +61,32 @@ export default function Tutorials({
   const { gif, alt, description } = tutorials[currentStep];
 
   return showTutorial ? (
-    <div id="tutorials-wrapper">
-      <Image src={gif} alt={alt} layout="fill" priority={true} sizes="" />
+    <div id="tutorials-wrapper" style={{ position: "relative" }}>
+      {" "}
+      {/* Ensure the wrapper has a relative position */}
+      <img
+        src={gif}
+        alt={alt}
+        style={{
+          objectFit: "cover",
+          width: "100%",
+          height: "100%",
+        }}
+        // layout="fill"
+        // objectFit="cover"
+      />
       <div id="tutorial-steps">
         <p>{description}</p>
         <button onClick={previousStep}>{"<"}</button>
         <button onClick={nextStep}>{">"}</button>
-        <button onClick={(e) => setShowTutorial(false)}>Close</button>
+        <button onClick={() => setShowTutorial(false)}>Close</button>
       </div>
     </div>
   ) : (
     <button
       id="show-tutorials"
       style={showCanvas ? { gridColumn: "1/-1" } : {}}
-      onClick={(e) => setShowTutorial(true)}
+      onClick={() => setShowTutorial(true)}
     >
       TUTORIAL
     </button>

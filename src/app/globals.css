@@ -1,3 +1,28 @@
+@font-face {
+  font-family: 'Digital-7';
+  src: url('/assets/fonts/digital-7.ttf') format('truetype'),
+}
+
+
+/* create a background flashing animation */
+@keyframes flash {
+  0% {
+    background-color: #c0c0c0;
+  }
+
+  50% {
+    background-color: #808080;
+  }
+
+  100% {
+    background-color: #c0c0c0;
+  }
+}
+
+.flash {
+  animation: flash 2s infinite;
+}
+
 * {
   box-sizing: border-box;
   padding: 0;
@@ -73,7 +98,7 @@ body {
 
 button,
 form,
-#controls-wrapper div:not(#info-title) div:not(.info) div:not(#population){
+#controls-wrapper div:not(#info-title) div:not(.info) div:not(#population) {
   background-color: #bdbdbd;
   border: 2px solid white;
   border-bottom: 2px solid #7f7f7f;
@@ -96,6 +121,7 @@ form {
   grid-template-columns: 1fr auto;
 
 }
+
 
 /* form children except submit */
 form>*:not(:last-child) {
@@ -140,13 +166,13 @@ a {
 
 #controls-wrapper {
   text-transform: uppercase;
-  display: grid;
   grid-template-rows: 1fr 1fr;
   height: calc(100vh - 30px);
   overflow-y: auto;
 }
 
 #controls-wrapper.mobile {
+  display: grid;
   grid-template-rows: auto auto;
   height: auto;
 }
@@ -255,47 +281,54 @@ a {
 
 .info {
   position: relative;
-  height: fit-content;
   grid-column: 1/-1;
   overflow: hidden;
-  display: inline-block;
-  /* text-align: center; */
-  margin-top: 50px;
   font-size: 30pt;
-  border: none;
-  border-bottom: 2px solid #7f7f7f;
-  border-right: 2px solid #7f7f7f;
-  padding: 3px;
   border-style: outset;
-  
+
 }
 
-#population{
-  background-color: #000000; /* Red */
+.screen {
+  background-color: #000000;
+  display: inline-block;
+  position: absolute;
+  z-index: 3;
+  top: 1px;
+  left: 1px;
+  color: red;
+  padding: 2px 2px;
+  border: none;
+  font-family: 'Digital-7', fallback, serif;
+  font-size: 20px;
+
+}
+
+#population {
+  background-color: #000000;
+  /* Red */
   color: red;
   display: inline-block;
   padding: 2px 2px;
-  margin-top: 10px;
   border: none;
   font-size: 20px;
   font-family: 'Digital-7', fallback, serif;
 }
 
-@font-face {
-  font-family: 'Digital-7';
-  src: url('/assets/fonts/digital-7.ttf') format('truetype'),
-}
 
-#info-title{
+#info-title {
   display: inline-block;
-  border: 5px solid white;
-  background-color: rgb(0, 85, 255);
-  color: white;
-  border-bottom: 5px solid #808080;
-  border-right: 5px solid #808080;
+  /* border: 5px solid white; */
+  /* border-bottom: 5px solid #808080; */
+  /* border-right: 5px solid #808080; */
   width: 100%;
 }
 
-/* #population div:not(.) {
+#selected-bunker>* {
+  border-style: outset;
 
-} */
+}
+
+.spacer {
+  height: 3rem;
+  border-style: outset;
+}

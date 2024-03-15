@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import BunkerForm from "./BunkerForm";
-import DisplayBunkerProperties from "./DisplayBunkerProperties";
 import { v4 as uuidv4 } from "uuid";
 import InfoPanel from "./InfoPanel";
 import DisplayBunkerResults from "./DisplayBunkerResults";
@@ -41,6 +40,16 @@ export default function UX({
       }
 
       if (p5Instance) {
+        // Generate a 4-character alphanumeric ID
+        const generateShortId = () => {
+          const chars =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+          let result = "";
+          for (let i = 0; i < 5; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+          }
+          return result.toUpperCase();
+        };
         // Proceed with the rest of your code for saving the bunker as before
 
         const croppedImage = p5Instance.createImage(w, h);
@@ -53,7 +62,8 @@ export default function UX({
         const ctx = offScreenCanvas.getContext("2d");
         ctx.drawImage(croppedImage.canvas, 0, 0);
 
-        data.id = `bunker-${uuidv4()}`;
+        // data.id = `bunker-${uuidv4()}`;
+        data.id = `${generateShortId()}`; // Use the new short ID here
 
         const dataURL = offScreenCanvas.toDataURL("image/png");
         const view = imageViewState;
@@ -104,6 +114,7 @@ export default function UX({
     >
       <div id="toolbar" className={isMobile ? `mobile` : ""}>
         <button
+          className={showCanvas ? "" : "flash"}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -112,7 +123,7 @@ export default function UX({
             setUserData(null);
           }}
         >
-          + ADD YOUR AIRBNBUNKER
+          {!showCanvas ? `+ ADD YOUR AIRBNBUNKER` : "BUNKER BUILDER"}
         </button>
         {showCanvas && (
           <button

@@ -12,10 +12,10 @@ import { BitmapLayer } from "@deck.gl/layers";
 import { bbox } from "@turf/turf";
 import MeshLayer from "./layers/ScenegraphLayer";
 import "mapbox-gl/dist/mapbox-gl.css";
-import CanvasAnimation from "./CanvasAnimation";
-import { ArcLayer } from "@deck.gl/layers";
-import { ScreenGridLayer, HeatmapLayer } from "@deck.gl/aggregation-layers";
-import AnimatedArcLayer from "./layers/animated-arc-group";
+// import CanvasAnimation from "./CanvasAnimation";
+// import { ArcLayer } from "@deck.gl/layers";
+// import { ScreenGridLayer, HeatmapLayer } from "@deck.gl/aggregation-layers";
+// import AnimatedArcLayer from "./layers/animated-arc-group";
 
 import {
   createNetworkEdges,
@@ -179,9 +179,9 @@ export default function InteractiveMap({
           id: `msBunkers-${i}`,
           bounds: imageBounds,
           image: b.ImageURL,
-          extensions: [new MaskExtension()],
-          maskId: "geofence",
-          maskByInstance: true,
+          // extensions: [new MaskExtension()],
+          // maskId: "geofence",
+          // maskByInstance: true,
           pickable: true,
           onHover: () => {
             setSelectedBunker(b);
@@ -194,28 +194,6 @@ export default function InteractiveMap({
 
     setMinesweeperBunkerLayers(layers);
   }, [minesweeperBunkers]);
-
-  // useEffect to handle selectedBunker
-  useEffect(() => {
-    if (
-      !selectedBunker ||
-      typeof selectedBunker !== "object" ||
-      !selectedBunker.View
-    )
-      return;
-
-    const view = JSON.parse(selectedBunker.View);
-
-    // setViewState({
-    //   ...viewState,
-    //   pitch: 0,
-    //   zoom: view.zoom,
-    //   latitude: view.latitude,
-    //   longitude: view.longitude,
-    //   transitionDuration: 1500,
-    //   transitionInterpolator: new FlyToInterpolator(),
-    // });
-  }, [selectedBunker]);
 
   // useEffect(() => {
   //   if (bunkerCentroids && bunkerCentroids.features?.length > 0) {
@@ -310,25 +288,37 @@ export default function InteractiveMap({
       stroked: true,
       lineWidthUnits: "pixels",
       getLineColor: [255, 255, 255, 100],
-      getLineWidth: 2,
+      getLineWidth: 1,
       extensions: [new MaskExtension()],
       maskId: "geofence",
       maskInverted: true,
     }),
     !showCanvas &&
-      new ArcLayer({
-        id: "arc-layer",
-        data: network.features,
-        getSourcePosition: (d) => d.geometry.coordinates[0],
-        getTargetPosition: (d) => d.geometry.coordinates[1],
-        getSourceColor: [255, 255, 255],
-        getTargetColor: [255, 255, 255],
-        getWidth: 3,
-        getHeight: -0.25,
+      new GeoJsonLayer({
+        id: "network-layer-inclusion",
+        data: network,
+        stroked: true,
+        lineWidthUnits: "pixels",
+        getLineColor: [255, 255, 255],
+        getLineWidth: 3,
         extensions: [new MaskExtension()],
         maskId: "geofence",
         maskInverted: false,
       }),
+    // !showCanvas &&
+    //   new ArcLayer({
+    //     id: "arc-layer",
+    //     data: network.features,
+    //     getSourcePosition: (d) => d.geometry.coordinates[0],
+    //     getTargetPosition: (d) => d.geometry.coordinates[1],
+    //     getSourceColor: [255, 255, 255],
+    //     getTargetColor: [255, 255, 255],
+    //     getWidth: 3,
+    //     getHeight: -0.25,
+    //     extensions: [new MaskExtension()],
+    //     maskId: "geofence",
+    //     maskInverted: false,
+    //   }),
     flags &&
       MeshLayer({
         id: "flags",
@@ -425,9 +415,9 @@ export default function InteractiveMap({
       //on mouse move, set cursor to the event
       onHover={(event) => {
         // check if hovering over a pickable object
-        if (!event.picked) {
-          setSelectedBunker(null);
-        }
+        // if (!event.picked) {
+        //   setSelectedBunker(null);
+        // }
 
         if (event.coordinate === undefined) return;
         let d;
