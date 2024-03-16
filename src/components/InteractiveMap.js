@@ -12,7 +12,7 @@ import { BitmapLayer } from "@deck.gl/layers";
 import { bbox } from "@turf/turf";
 import MeshLayer from "./layers/ScenegraphLayer";
 import "mapbox-gl/dist/mapbox-gl.css";
-// import CanvasAnimation from "./CanvasAnimation";
+import CanvasAnimation from "./CanvasAnimation";
 // import { ArcLayer } from "@deck.gl/layers";
 // import { ScreenGridLayer, HeatmapLayer } from "@deck.gl/aggregation-layers";
 // import AnimatedArcLayer from "./layers/animated-arc-group";
@@ -27,7 +27,7 @@ import {
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
 const _ascii = new PostProcessEffect(dotScreen, {
-  size: 3,
+  size: 1.5,
 });
 
 const _noise = new PostProcessEffect(noise, {
@@ -68,8 +68,8 @@ export default function InteractiveMap({
           return feature;
         });
 
-        // get the bounding box for all of the bunkers
         const dataBounds = bbox(data);
+        // get the bounding box for all of the bunkers
         setBunkerCentroids(data);
 
         if (!isMobile) setBunkers(createBufferAndBbox(data, 0.0125, "miles"));
@@ -127,6 +127,15 @@ export default function InteractiveMap({
 
       setNetwork(createNetworkEdges(combinedBunkers));
       setAllBunkerCentroids(combinedBunkers);
+
+      // get dataBounds = bbox(data);
+      const dataBounds = bbox(combinedBunkers);
+      setViewStateBounds({
+        westLng: dataBounds[0],
+        southLat: dataBounds[1],
+        eastLng: dataBounds[2],
+        northLat: dataBounds[3],
+      });
     }
   }, [bunkerCentroids, minesweeperBunkers]);
 
@@ -150,9 +159,6 @@ export default function InteractiveMap({
         bunkerCentroids.features[i].properties.imgURL ||
         "./assets/img/placeholder.png";
 
-      console.log(img);
-
-      console.log(b);
       return new BitmapLayer({
         id: `bunker-${i}`,
         bounds: b,
@@ -162,6 +168,8 @@ export default function InteractiveMap({
         maskByInstance: true,
         pickable: true,
         onHover: (info) => {
+          // console.log(bunkerCentroids.features[i]);
+
           if (!info.bitmap) {
             setSelectedBunker(null);
           }
@@ -188,9 +196,7 @@ export default function InteractiveMap({
           id: `msBunkers-${i}`,
           bounds: imageBounds,
           image: b.ImageURL,
-          // extensions: [new MaskExtension()],
-          // maskId: "geofence",
-          // maskByInstance: true,
+
           pickable: true,
           onHover: () => {
             setSelectedBunker(b);
@@ -417,7 +423,7 @@ export default function InteractiveMap({
         setViewState(viewState);
         return viewState;
       }}
-      controller={{ inertia: 750, keyboard: true }}
+      controller={{ keyboard: true }}
       layers={layers}
       autoResize={true}
       effects={[_noise, _ascii]} //_halftone,_hueSaturation

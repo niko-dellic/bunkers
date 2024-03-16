@@ -62,7 +62,7 @@ export default function CanvasAnimation({
       // Wait for 5 minutes before restarting
       animationPaused = false; // Resume the animation
       animateFlyThrough(); // Restart the animation
-    }, 5 * 60 * 1000); // 5 minutes
+    }, 5 * 60 * 5000); // 5 minutes
   }, 5 * 60 * 1000);
 
   return () => {

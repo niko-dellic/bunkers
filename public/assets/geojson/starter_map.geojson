@@ -38,7 +38,34 @@
         "bartering": "no batering",
         "imgURL": "/assets/img/bunker_socks.png"
       },
-      "geometry": { "type": "Point", "coordinates": [-71.0942, 42.3601] }
+      "geometry": { "type": "Point", "coordinates": [-71.0942, 42.3531] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Retro Roach Retreat: The Comic Haven.",
+        "item": "New Yorker Magazines",
+        "team": "Karl",
+        "description": "This bunker is a delightful throwback to the 1950s, cluttered yet cozy, with walls plastered in an eclectic collection of 'The New Yorker' comics, offering a humorous escape amidst a backdrop of retro decor. The centerpiece is a massive, awe-inspiring James Turrell-style sky installation, creating the illusion of an open sky, while its advanced structural integrity ensures complete protection against an invasion of giant cockroaches, preserving the quirky sanctuary within.",
+        "bartering": "open to bartering",
+        "imgURL": "/assets/img/bunker_newyorkers.png"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-71.142, 42.3321]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sock 'n' Rock Refuge: The Solar-Proof Sing-Along",
+        "item": "Goodluck Socks",
+        "team": "Álvaro",
+        "description": "This bunker exudes the laid-back, fun-filled ambiance of a basement man cave, with shelves lined with an array of colorful 'good luck' socks, adding a quirky charm to the cozy space. Equipped with a high-energy karaoke machine for endless entertainment and reinforced with specialized shielding against solar flares, it offers a unique blend of lighthearted fun and high-tech safety, perfect for singing the night away without a care in the world.",
+        "bartering": "no batering",
+        "imgURL": "/assets/img/bunker_socks.png"
+      },
+      "geometry": { "type": "Point", "coordinates": [-71.07, 42.3531] }
     }
   ]
 }
