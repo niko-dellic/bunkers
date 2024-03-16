@@ -102,7 +102,7 @@ export default function BunkerForm({
         disabled={isSubmitting}
         style={{ backgroundColor: isSubmitting ? "grey" : "initial" }}
       >
-        Build bunker
+        {isSubmitting ? "LOADING..." : "Build bunker"}
       </button>
     </form>
   );
@@ -112,19 +112,19 @@ function FormContents() {
   return (
     <>
       <h2>Make your own bunker!</h2>
-      <label style={{ margin: "1em 0" }}>
+      <label style={{ margin: "0.25rem 0" }}>
         Name your bunker
         <input type="text" name="name" />
       </label>
-      <label style={{ margin: "1em 0" }}>
+      <label style={{ margin: "0.25rem 0" }}>
         What are you stockpiling?
         <input type="text" name="item" />
       </label>
-      <label style={{ margin: "1em 0" }}>
+      <label style={{ margin: "0.25rem 0" }}>
         Is your bunker part of the collective prepper network?
         <select name="item">
           <option value="yes">Yes, open to trading</option>
-          <option value="no">No, I'm off grid</option>
+          <option value="no">No, Im off grid</option>
         </select>
       </label>
       {/* <label style={{ display: "block" }}>
@@ -136,21 +136,21 @@ function FormContents() {
           </div>
         ))}
       </label> */}
-      <label style={{ margin: "1em 0" }}>
-        What is your bunkers vibe?"
+      <label style={{ margin: "0.25rem 0" }}>
+        What is your bunkers vibe?
         <textarea
           name="vibe"
-          style={{ resize: "none", width: "100%", margin: "1em 0" }}
+          style={{ resize: "none", width: "100%", margin: "0.25rem 0" }}
         />
       </label>
-      <label style={{ margin: "1em 0" }}>
+      <label style={{ margin: "0.25rem 0" }}>
         What world ending scenario are you most afraid of?
         <textarea
           name="fear"
           style={{ resize: "none", width: "100%", margin: "10px 0" }}
         />
       </label>
-      <label style={{ margin: "1em 0" }}>
+      <label style={{ margin: "0.25rem 0" }}>
         What are the names of the preppers in your survival team?
         <textarea
           name="team"

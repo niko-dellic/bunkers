@@ -144,10 +144,19 @@ export default function InteractiveMap({
 
   useEffect(() => {
     const layers = bunkers.map((b, i) => {
+      // get the img url from the start map
+
+      const img =
+        bunkerCentroids.features[i].properties.imgURL ||
+        "./assets/img/placeholder.png";
+
+      console.log(img);
+
+      console.log(b);
       return new BitmapLayer({
         id: `bunker-${i}`,
         bounds: b,
-        image: "./assets/img/placeholder.png",
+        image: img,
         extensions: [new MaskExtension()],
         maskId: "geofence",
         maskByInstance: true,

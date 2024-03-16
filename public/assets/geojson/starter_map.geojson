@@ -11,7 +11,7 @@
         "bartering": "open to bartering",
         "imgURL": "/assets/img/bunker_vegetables.png"
       },
-      "geometry": { "type": "Point", "coordinates": [-71.1097, 42.3736] }
+      "geometry": { "type": "Point", "coordinates": [-71.1097, 43.3736] }
     },
     {
       "type": "Feature",

@@ -30,7 +30,16 @@ export default function DisplayBunkerResults({
           <span className="bold">
             {userData?.id || selectedBunker?.RowKey || null}
           </span>
+
           <span> TAKE A PICTURE.</span>
+          {parsedData?.name && (
+            <div className="access-code" style={{ marginTop: "1rem" }}>
+              BUNKER NAME: {parsedData.name || null}
+            </div>
+          )}
+          {parsedData?.team && (
+            <div className="access-code">TEAM: {parsedData.team || null}</div>
+          )}
         </div>
         <div>
           {imageResult ? (
