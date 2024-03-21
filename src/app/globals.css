@@ -2,6 +2,7 @@
 :root {
   --screen-padding: 1px 3px;
   --digital-font: 12pt;
+  --fat-bar: 10px;
 }
 
 
@@ -99,8 +100,6 @@
 
 }
 
-
-
 .flash {
   animation: flash 2s infinite;
   animation-timing-function: ease-in-out;
@@ -127,7 +126,6 @@ p,
 button {
   padding: 3px;
 }
-
 
 
 /* This styles the scrollbar track (the part the thumb slides along) */
@@ -184,7 +182,12 @@ main {
 }
 
 .border-effect {
-  border: 10px solid #c0c0c0;
+  border: var(--fat-bar) solid #c0c0c0;
+}
+
+.border-effect.bifold {
+  height: calc(50vh - (var(--fat-bar)*2));
+  overflow-y: auto;
 }
 
 .border-effect>* {
@@ -306,7 +309,7 @@ a {
 #controls-wrapper.mobile {
   display: grid;
   grid-template-rows: auto auto;
-  height: auto;
+  height: 100%;
 }
 
 #canvas-wrapper {
@@ -316,7 +319,8 @@ a {
 }
 
 #canvas-wrapper.mobile {
-  height: 50vh;
+  /* height: 50vh; */
+  height: calc(50vh - (var(--fat-bar)*4));
 }
 
 .react-p5-wrapper {
@@ -445,7 +449,6 @@ a {
   padding: var(--screen-padding);
   border: none;
   /* font-family: 'Digital-7', fallback, serif; */
-  /* font-size: 10px; */
 }
 
 #population {
@@ -523,8 +526,4 @@ a {
 
 .bold {
   font-weight: bold;
-}
-
-#selected-bunker {
-  /* padding-top: 1rem; */
 }

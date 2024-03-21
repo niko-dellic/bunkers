@@ -100,7 +100,11 @@ export default function Home() {
           id={isMobile ? "main-mobile" : ""}
           className={isMobile && showCanvas ? "locked" : ""}
         >
-          <div className="border-effect">
+          <div
+            className={`border-effect ${
+              isMobile && showCanvas ? "bifold" : ""
+            }`}
+          >
             <UX
               isMobile={isMobile}
               showCanvas={showCanvas}
@@ -121,7 +125,7 @@ export default function Home() {
               setBackupImages={setBackupImages}
             />
           </div>
-          <div className="border-effect">
+          <div className={`border-effect`}>
             <div
               id="canvas-wrapper"
               className={isMobile ? "mobile" : ""}
@@ -171,7 +175,7 @@ export default function Home() {
               />
             </div>
           </div>
-          <div className="border-effect" id="bunker-gallery-wrapper">
+          <div className={`border-effect `} id="bunker-gallery-wrapper">
             <BunkerGallery
               minesweeperBunkers={minesweeperBunkers}
               setSelectedBunker={setSelectedBunker}
