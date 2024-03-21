@@ -23,21 +23,19 @@ export default function DisplayBunkerResults({
   }
 
   return (
-    (userData || selectedBunker.Data) && (
+    (userData || selectedBunker?.Data) && (
       <div id={"selected-bunker"}>
-        <div className="access-code">
-          {parsedData?.name && (
-            <div className="access-code">
-              BUNKER NAME: {parsedData.name || null}
-            </div>
-          )}
-          {parsedData?.team && (
-            <div className="access-code">
-              Preppers: {parsedData.team || null}
-            </div>
-          )}
-        </div>
-        <div>
+        {parsedData?.name && (
+          <div className="selected-bunker-data">
+            BUNKER NAME: {parsedData.name || null}
+          </div>
+        )}
+        {parsedData?.team && (
+          <div className="selected-bunker-data">
+            Preppers: {parsedData.team || null}
+          </div>
+        )}
+        <div className="selected-bunker-image-container">
           {imageResult ? (
             <Image
               src={imageResult}
@@ -75,13 +73,9 @@ export default function DisplayBunkerResults({
           {/* add parsed items */}
           {userData?.id ||
             (selectedBunker?.RowKey && (
-              <div>
-                <span>YOUR BUNKER ACCESS CODE IS: </span>
-                <span className="bold">
-                  {userData?.id || selectedBunker?.RowKey || null}
-                </span>
-
-                <span> TAKE A PICTURE.</span>
+              <div id="access-code" className="absolute top-left screen">
+                CODE:
+                {userData?.id || selectedBunker?.RowKey || null}
               </div>
             ))}
           <div id="store-items-container">
@@ -106,15 +100,15 @@ export default function DisplayBunkerResults({
                   />
                   {item ? (
                     <>
-                      <div className="store-item-name">
+                      <div className="screen store-item-name">
                         Name: {item?.ItemName}
                       </div>
-                      <div className="store-item-name">
+                      <div className="screen store-item-name">
                         CAPS: {item?.ItemValue}
                       </div>
                     </>
                   ) : (
-                    <div className="store-item-name">Empty</div>
+                    <div className="screen store-item-name">Empty</div>
                   )}
                 </div>
               );
@@ -123,8 +117,12 @@ export default function DisplayBunkerResults({
         </div>
 
         {/* if there are items,  */}
-        {objectToMap.result && <div>{objectToMap.result}</div>}
-        {parsedData?.result && <div>{parsedData.result}</div>}
+        {objectToMap.result && (
+          <div className="selected-bunker-data">{objectToMap.result}</div>
+        )}
+        {parsedData?.result && (
+          <div className="selected-bunker-data">{parsedData.result}</div>
+        )}
       </div>
     )
   );

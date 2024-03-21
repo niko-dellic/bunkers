@@ -1,3 +1,11 @@
+/* add root variable for screen padding */
+:root {
+  --screen-padding: 1px 3px;
+  --digital-font: 12pt;
+}
+
+
+
 @font-face {
   font-family: 'Digital-7';
   src: url('/assets/fonts/digital-7.ttf') format('truetype'),
@@ -47,9 +55,17 @@
   padding: 0;
   margin: 0;
   font-size: 10pt;
+  text-transform: uppercase;
   /* scrollbar-color: #c0c0c0 #7c7c7c */
   /* scrollbar border */
 }
+
+p,
+.selected-bunker-data,
+button {
+  padding: 3px;
+}
+
 
 /* This styles the scrollbar track (the part the thumb slides along) */
 ::-webkit-scrollbar-track {
@@ -120,14 +136,22 @@ body {
   background-color: #bdbdbd;
 }
 
+.no-selected-bunker {}
+
 button,
 form,
-#controls-wrapper div:not(#info-title) div:not(#population) {
+#controls-wrapper,
+.store-item,
+.info,
+.selected-bunker-data,
+#store-items-container,
+#tutorial-steps,
+.selected-bunker-image-container>img,
+.filler {
   background-color: #bdbdbd;
   border: 2px solid white;
   border-bottom: 2px solid #7f7f7f;
   border-right: 2px solid #7f7f7f;
-  padding: 3px;
   border-style: outset;
 }
 
@@ -146,18 +170,24 @@ form {
   display: grid;
 }
 
+/* form children except submit */
+form>*:not(:last-child) {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+}
+
 #toolbar {
   display: grid;
   grid-template-columns: 1fr auto;
 
 }
 
-
-/* form children except submit */
-form>*:not(:last-child) {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+.selected-bunker-image-container {
+  position: relative;
 }
+
+
 
 button:hover {
   border: 2px solid #7f7f7f;
@@ -176,6 +206,7 @@ select {
   font-family: 'Digital-7', fallback, serif;
   resize: none;
   border: 2px inset white;
+  font-size: var(--digital-font);
 
 
 }
@@ -326,34 +357,37 @@ a {
 
 }
 
+.absolute {
+  position: absolute;
+}
+
+.top-left {
+  top: 0;
+  left: 0;
+}
+
 .screen {
   background-color: #000000;
   display: inline-block;
-  position: absolute;
   z-index: 3;
-  top: 1px;
-  left: 1px;
   color: red;
   font-family: 'Digital-7', fallback, serif;
   border: 2px inset white;
-  padding: 1px 2px;
-
-
+  padding: var(--screen-padding);
+  font-size: var(--digital-font);
 }
 
 .danger {
-  padding: 2px 2px;
+  padding: var(--screen-padding);
   border: none;
   /* font-family: 'Digital-7', fallback, serif; */
   /* font-size: 10px; */
 }
 
 #population {
-  background-color: #000000;
-  color: red;
+
   display: inline-block;
-  padding: 1px 2px;
-  font-size: 20px;
+  font-size: var(--digital-font);
   font-family: 'Digital-7', fallback, serif;
   border: 2px inset white;
 }
@@ -378,6 +412,7 @@ a {
 
 
 #store-items-container {
+  padding: 10px 0;
   position: relative;
   display: flex;
   flex-direction: row;
@@ -390,7 +425,6 @@ a {
 
 .store-item-name {
   overflow: hidden;
-  font-size: 10pt;
   width: 100%;
 }
 

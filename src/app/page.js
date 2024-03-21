@@ -127,6 +127,10 @@ export default function Home() {
               //   togglePlanView(false);
               // }}
             >
+              <div id="population" className="absolute top-left screen">
+                Population: {minesweeperBunkers.length}
+              </div>
+
               <Canvas
                 showCanvas={showCanvas}
                 setShowCanvas={setShowCanvas}

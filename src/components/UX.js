@@ -110,7 +110,14 @@ export default function UX({
     <div
       id={`controls-wrapper`}
       className={isMobile ? `mobile` : ""}
-      style={!showTutorial ? { gridTemplateRows: "auto 1fr" } : {}}
+      style={
+        !userData && !selectedBunker?.Data
+          ? {
+              display: "grid",
+              gridTemplateRows: "auto auto 1fr",
+            }
+          : {}
+      }
     >
       <div id="toolbar" className={isMobile ? `mobile` : ""}>
         <button
@@ -146,13 +153,13 @@ export default function UX({
       {!showCanvas && !isMobile && (
         <InfoPanel minesweeperBunkers={minesweeperBunkers} />
       )}
-      {(userData || selectedBunker) && (
-        <DisplayBunkerResults
-          selectedBunker={selectedBunker}
-          userData={userData}
-          imageResult={imageResult}
-        />
-      )}
+
+      <DisplayBunkerResults
+        selectedBunker={selectedBunker}
+        userData={userData}
+        imageResult={imageResult}
+      />
+
       {showCanvas && (
         <BunkerForm
           onFormDataChange={handleFormData}
@@ -161,12 +168,7 @@ export default function UX({
           setImageResult={setImageResult}
         />
       )}
-      {/* {!showCanvas && selectedBunker && (
-        <DisplayBunkerProperties
-          selectedBunker={selectedBunker}
-          imageResult={imageResult}
-        />
-      )} */}
+      {!userData && !selectedBunker?.Data && <div className="filler">AA</div>}
     </div>
   );
 }

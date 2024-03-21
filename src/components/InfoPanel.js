@@ -3,8 +3,6 @@ import Image from "next/image";
 export default function InfoPanel({ minesweeperBunkers }) {
   return (
     <div className="info">
-      <div id="population">Population: {minesweeperBunkers.length}</div>
-
       <div className="smiley">
         <Image
           src="/assets/img/smile.png"

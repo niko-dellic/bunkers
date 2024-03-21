@@ -127,7 +127,7 @@ export default function BunkerGallery({
               }}
             />
             {/* json stringify  */}
-            <div className="screen">
+            <div className="absolute top-left screen">
               <span>{bunker.RowKey}</span>
             </div>
           </div>
