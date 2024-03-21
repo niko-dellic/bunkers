@@ -120,11 +120,14 @@ export default function BunkerGallery({
                 objectFit: "contain",
                 filter: "grayscale(100%)",
                 opacity: "0.5",
+                // center text
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
               }}
             />
             {/* json stringify  */}
             <div className="screen">
-              <span className="danger">CODE:</span>
               <span>{bunker.RowKey}</span>
             </div>
           </div>

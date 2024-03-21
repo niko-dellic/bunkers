@@ -111,16 +111,15 @@ export default function BunkerForm({
 function FormContents() {
   return (
     <>
-      <h2>Make your own bunker!</h2>
-      <label style={{ margin: "0.25rem 0" }}>
+      <label>
         Name your bunker
         <input type="text" name="name" />
       </label>
-      <label style={{ margin: "0.25rem 0" }}>
+      <label>
         What are you stockpiling?
         <input type="text" name="item" />
       </label>
-      <label style={{ margin: "0.25rem 0" }}>
+      <label>
         Is your bunker part of the collective prepper network?
         <select name="item">
           <option value="yes">Yes, open to trading</option>
@@ -136,26 +135,20 @@ function FormContents() {
           </div>
         ))}
       </label> */}
-      <label style={{ margin: "0.25rem 0" }}>
+      <label>
         What is your bunkers vibe?
         <textarea
           name="vibe"
-          style={{ resize: "none", width: "100%", margin: "0.25rem 0" }}
+          // disable resize
         />
       </label>
-      <label style={{ margin: "0.25rem 0" }}>
+      <label>
         What world ending scenario are you most afraid of?
-        <textarea
-          name="fear"
-          style={{ resize: "none", width: "100%", margin: "10px 0" }}
-        />
+        <textarea name="fear" />
       </label>
-      <label style={{ margin: "0.25rem 0" }}>
+      <label>
         What are the names of the preppers in your survival team?
-        <textarea
-          name="team"
-          style={{ resize: "none", width: "100%", margin: "10px 0" }}
-        />
+        <textarea name="team" />
       </label>
     </>
   );

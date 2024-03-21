@@ -369,8 +369,7 @@ export default function InteractiveMap({
             rotation: 35,
             text: `
             [X: 42.3765 Y: -71.1039] \r\n
-            ALERT! ALERT! ALERT! AFTER PARTY ALERT!
-            71 BEACON ST APT 3 BZ 9048`,
+            ALERT! ALERT! ALERT! AFTER PARTY ALERT!`,
           },
         },
       ],

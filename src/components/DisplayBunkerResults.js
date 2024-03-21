@@ -26,21 +26,15 @@ export default function DisplayBunkerResults({
     (userData || selectedBunker.Data) && (
       <div id={"selected-bunker"}>
         <div className="access-code">
-          <div>
-            <span>YOUR BUNKER ACCESS CODE IS: </span>
-            <span className="bold">
-              {userData?.id || selectedBunker?.RowKey || null}
-            </span>
-
-            <span> TAKE A PICTURE.</span>
-          </div>
           {parsedData?.name && (
             <div className="access-code">
               BUNKER NAME: {parsedData.name || null}
             </div>
           )}
           {parsedData?.team && (
-            <div className="access-code">TEAM: {parsedData.team || null}</div>
+            <div className="access-code">
+              Preppers: {parsedData.team || null}
+            </div>
           )}
         </div>
         <div>
@@ -79,6 +73,17 @@ export default function DisplayBunkerResults({
             />
           )}
           {/* add parsed items */}
+          {userData?.id ||
+            (selectedBunker?.RowKey && (
+              <div>
+                <span>YOUR BUNKER ACCESS CODE IS: </span>
+                <span className="bold">
+                  {userData?.id || selectedBunker?.RowKey || null}
+                </span>
+
+                <span> TAKE A PICTURE.</span>
+              </div>
+            ))}
           <div id="store-items-container">
             {/* for each key value pair in parsedItems */}
             {parsedItems?.map((item, index) => {

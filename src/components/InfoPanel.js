@@ -3,7 +3,9 @@ import Image from "next/image";
 export default function InfoPanel({ minesweeperBunkers }) {
   return (
     <div className="info">
-      <div style={{ display: "flex", justifyContent: "center" }}>
+      <div id="population">Population: {minesweeperBunkers.length}</div>
+
+      <div className="smiley">
         <Image
           src="/assets/img/smile.png"
           alt="smiley"
@@ -12,11 +14,10 @@ export default function InfoPanel({ minesweeperBunkers }) {
           style={{ height: "auto", paddingTop: "10px" }}
         />
       </div>
-      <p id="info-title">Welcome to BunkerMatch</p>
-      <div id="population">Population: {minesweeperBunkers.length}</div>
+      {/* <p id="info-title">Welcome to BunkerMatch</p> */}
 
       <p className="instructions">
-        Browse the map and find a place to create your new emergency shelter.
+        Browse the map and find a place to build your bunker.
       </p>
     </div>
   );
