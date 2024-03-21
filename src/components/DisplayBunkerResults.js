@@ -26,14 +26,16 @@ export default function DisplayBunkerResults({
     (userData || selectedBunker.Data) && (
       <div id={"selected-bunker"}>
         <div className="access-code">
-          <span>YOUR BUNKER ACCESS CODE IS: </span>
-          <span className="bold">
-            {userData?.id || selectedBunker?.RowKey || null}
-          </span>
+          <div>
+            <span>YOUR BUNKER ACCESS CODE IS: </span>
+            <span className="bold">
+              {userData?.id || selectedBunker?.RowKey || null}
+            </span>
 
-          <span> TAKE A PICTURE.</span>
+            <span> TAKE A PICTURE.</span>
+          </div>
           {parsedData?.name && (
-            <div className="access-code" style={{ marginTop: "1rem" }}>
+            <div className="access-code">
               BUNKER NAME: {parsedData.name || null}
             </div>
           )}
