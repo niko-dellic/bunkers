@@ -46,7 +46,7 @@
   box-sizing: border-box;
   padding: 0;
   margin: 0;
-  font-size: 16pt;
+  font-size: 10pt;
   /* scrollbar-color: #c0c0c0 #7c7c7c */
   /* scrollbar border */
 }
@@ -71,8 +71,6 @@
   border-right: 5px solid #7c7c7c;
   /* Simulated border around the thumb */
 }
-
-
 
 /* This styles the overall scrollbar */
 ::-webkit-scrollbar {
@@ -403,4 +401,8 @@ a {
 
 .bold {
   font-weight: bold;
+}
+
+#selected-bunker {
+  /* padding-top: 1rem; */
 }
