@@ -168,7 +168,7 @@ export default function UX({
           setImageResult={setImageResult}
         />
       )}
-      {!userData && !selectedBunker?.Data && <div className="filler">AA</div>}
+      {!userData && !selectedBunker?.Data && <div className="filler"></div>}
     </div>
   );
 }
