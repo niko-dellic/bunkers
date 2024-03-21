@@ -41,12 +41,74 @@
   }
 }
 
+@-webkit-keyframes holographic {
+  0% {
+    background-position: 78% 0%
+  }
+
+  50% {
+    background-position: 23% 100%
+  }
+
+  100% {
+    background-position: 78% 0%
+  }
+}
+
+@-moz-keyframes holographic {
+  0% {
+    background-position: 78% 0%
+  }
+
+  50% {
+    background-position: 23% 100%
+  }
+
+  100% {
+    background-position: 78% 0%
+  }
+}
+
+@keyframes holographic {
+  0% {
+    background-position: 78% 0%
+  }
+
+  50% {
+    background-position: 23% 100%
+  }
+
+  100% {
+    background-position: 78% 0%
+  }
+}
+
+
+.holographic {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(36deg, #c0c0c0, #808080);
+  background-size: 400% 400%;
+  animation-timing-function: ease-in-out;
+  -webkit-animation: holographic 1.5s ease infinite;
+  -moz-animation: holographic 1.5s ease infinite;
+  animation: holographic 1.5s ease infinite;
+
+}
+
+
+
 .flash {
   animation: flash 2s infinite;
+  animation-timing-function: ease-in-out;
 }
 
 .bounce {
-  animation: bounce 1s infinite;
+  animation: bounce 1.5s infinite;
+  animation-timing-function: ease-in-out;
 
 }
 
@@ -65,6 +127,7 @@ p,
 button {
   padding: 3px;
 }
+
 
 
 /* This styles the scrollbar track (the part the thumb slides along) */
@@ -144,6 +207,7 @@ form,
 .store-item,
 .info,
 .selected-bunker-data,
+#selected-bunker,
 #store-items-container,
 #tutorial-steps,
 .selected-bunker-image-container>img,
@@ -174,7 +238,7 @@ form {
 form>*:not(:last-child) {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  align-items: start;
+  /* align-items: start; */
 }
 
 #toolbar {

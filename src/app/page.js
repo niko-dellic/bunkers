@@ -8,8 +8,10 @@ import Credits from "../components/Credits";
 // import head
 import Head from "next/head";
 import UX from "../components/UX";
-
+import { placeholderBunkers } from "../components/utils";
 import { FlyToInterpolator } from "@deck.gl/core";
+
+const placeholderImages = placeholderBunkers();
 
 export default function Home() {
   const isMobile = useMobileDetect();
@@ -32,6 +34,15 @@ export default function Home() {
   // check to reload the database
   const [triggerFetch, setTriggerFetch] = useState(false);
   const [initialEntry, setInitialEntry] = useState(false);
+
+  const [imgError, setImgError] = useState({});
+
+  const [backupImages, setBackupImages] = useState(() => {
+    return minesweeperBunkers.map(
+      () =>
+        placeholderImages[Math.floor(Math.random() * placeholderImages.length)]
+    );
+  });
 
   const [viewState, setViewState] = useState({
     longitude: -71.08725092308282,
@@ -64,23 +75,15 @@ export default function Home() {
   );
 
   useEffect(() => {
-    // Function to handle key down
-    const handleKeyDown = (e) => {
-      // if (e.key === " ") {
-      //   // Prevent default action to avoid any side effect like scrolling
-      //   e.preventDefault();
-      //   setShowCredits((prevShowCredits) => !prevShowCredits);
-      // }
-    };
-
-    // Add event listener to the window
-    window.addEventListener("keydown", handleKeyDown);
-
-    // Cleanup function to remove the event listener
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []); // Empty dependency array means this effect runs only once on mount
+    setBackupImages(
+      minesweeperBunkers.map(
+        () =>
+          placeholderImages[
+            Math.floor(Math.random() * placeholderImages.length)
+          ]
+      )
+    );
+  }, [minesweeperBunkers]);
 
   return (
     isMobile !== undefined && (
@@ -112,6 +115,10 @@ export default function Home() {
               setTriggerFetch={setTriggerFetch}
               triggerFetch={triggerFetch}
               setSelectedBunker={setSelectedBunker}
+              imgError={imgError}
+              setImgError={setImgError}
+              backupImages={backupImages}
+              setBackupImages={setBackupImages}
             />
           </div>
           <div className="border-effect">
@@ -174,6 +181,9 @@ export default function Home() {
               isMobile={isMobile}
               viewState={viewState}
               setViewState={setViewState}
+              imgError={imgError}
+              setImgError={setImgError}
+              backupImages={backupImages}
             />
           </div>
 

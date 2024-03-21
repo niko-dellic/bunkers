@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { FlyToInterpolator } from "@deck.gl/core";
 
 export default function BunkerGallery({
@@ -11,6 +11,9 @@ export default function BunkerGallery({
   isMobile,
   viewState,
   setViewState,
+  backupImages,
+  imgError,
+  setImgError,
 }) {
   const [awaitingConfirmationBunkerId, setAwaitingConfirmationBunkerId] =
     useState(null);
@@ -112,7 +115,11 @@ export default function BunkerGallery({
               </button>
             )}
             <Image
-              src={parsed.genImageURL}
+              src={
+                imgError[bunker.RowKey]
+                  ? imgError[bunker.RowKey]
+                  : parsed.genImageURL
+              }
               alt={bunker.Data["name"] || `Bunker ${index + 1}`}
               sizes="500px"
               fill
@@ -125,8 +132,16 @@ export default function BunkerGallery({
                 justifyContent: "center",
                 alignItems: "center",
               }}
+              onError={() => {
+                setImgError({
+                  ...imgError,
+                  [bunker.RowKey]:
+                    backupImages[
+                      Math.floor(Math.random() * backupImages.length)
+                    ],
+                });
+              }}
             />
-            {/* json stringify  */}
             <div className="absolute top-left screen">
               <span>{bunker.RowKey}</span>
             </div>

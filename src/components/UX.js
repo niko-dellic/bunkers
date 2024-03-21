@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import BunkerForm from "./BunkerForm";
-import { v4 as uuidv4 } from "uuid";
 import InfoPanel from "./InfoPanel";
 import DisplayBunkerResults from "./DisplayBunkerResults";
 import Tutorials from "./tutorials";
@@ -20,6 +19,10 @@ export default function UX({
   setTriggerFetch,
   triggerFetch,
   setSelectedBunker,
+  backupImages,
+  setBackupImages,
+  imgError,
+  setImgError,
 }) {
   const [userData, setUserData] = useState(null);
   const [showTutorial, setShowTutorial] = useState(false);
@@ -111,11 +114,15 @@ export default function UX({
       id={`controls-wrapper`}
       className={isMobile ? `mobile` : ""}
       style={
-        !userData && !selectedBunker?.Data
+        !showCanvas & !userData && !selectedBunker?.Data
+          ? { display: "grid", gridTemplateRows: "auto 1fr" }
+          : showCanvas && (userData || selectedBunker?.Data)
           ? {
               display: "grid",
               gridTemplateRows: "auto auto 1fr",
             }
+          : showCanvas
+          ? { display: "grid", gridTemplateRows: "auto 1fr auto" }
           : {}
       }
     >
@@ -158,6 +165,10 @@ export default function UX({
         selectedBunker={selectedBunker}
         userData={userData}
         imageResult={imageResult}
+        imgError={imgError}
+        setImgError={setImgError}
+        backupImages={backupImages}
+        setBackupImages={setBackupImages}
       />
 
       {showCanvas && (
@@ -168,7 +179,6 @@ export default function UX({
           setImageResult={setImageResult}
         />
       )}
-      {!userData && !selectedBunker?.Data && <div className="filler"></div>}
     </div>
   );
 }

@@ -402,6 +402,8 @@ export default function InteractiveMap({
       viewState={viewState}
       onViewStateChange={(e) => {
         const viewState = e.viewState;
+        setViewState(viewState);
+        return;
         //check if viewStateBounds is an empty object
         if (Object.keys(viewStateBounds).length === 0) return viewState;
 

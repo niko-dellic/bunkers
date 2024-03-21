@@ -116,3 +116,24 @@ export function preventDefaultInputs() {
     }
   });
 }
+
+export function placeholderBunkers() {
+  const dir = "/assets/img/";
+  let placeholderImages = [
+    "placeholder_axo_bunker_1.webp",
+    "placeholder_axo_bunker_2.webp",
+    "placeholder_axo_bunker_3.webp",
+    "placeholder_axo_bunker_4.webp",
+    "placeholder_axo_bunker_5.webp",
+    "placeholder_axo_bunker_6.webp",
+    "placeholder_axo_bunker_6.webp",
+    "placeholder_axo_bunker_7.webp",
+    "bunker_vegetables.png",
+    "bunker_socks.png",
+    "bunker_newyorkers.png",
+  ];
+
+  // for each placeholder image, prepend the string with the dir
+  placeholderImages = placeholderImages.map((img) => dir + img);
+  return placeholderImages;
+}

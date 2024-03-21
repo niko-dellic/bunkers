@@ -1,14 +1,18 @@
 import Image from "next/image";
+import { useState, useEffect } from "react";
 
 export default function DisplayBunkerResults({
   userData,
   selectedBunker,
   imageResult,
+  imgError,
 }) {
   // Determine which object to use for mapping
   const objectToMap = userData || selectedBunker;
   let parsedData = null;
   let parsedItems = null;
+  const id = userData?.id || selectedBunker?.RowKey;
+
   if (objectToMap && !userData && objectToMap?.Data) {
     // parse the data from the selectedBunker
     parsedData = JSON.parse(objectToMap?.Data);
@@ -38,7 +42,7 @@ export default function DisplayBunkerResults({
         <div className="selected-bunker-image-container">
           {imageResult ? (
             <Image
-              src={imageResult}
+              src={!imgError[id] ? imageResult : imgError[id]}
               width={256}
               height={256}
               alt="Generated Image"
@@ -51,7 +55,7 @@ export default function DisplayBunkerResults({
             />
           ) : parsedData?.genImageURL ? (
             <Image
-              src={parsedData?.genImageURL}
+              src={!imgError[id] ? parsedData?.genImageURL : imgError[id]}
               width={256}
               height={256}
               alt="Generated Image"
@@ -59,6 +63,7 @@ export default function DisplayBunkerResults({
                 width: "100%",
                 height: "auto",
                 imageRendering: "pixelated",
+                fontSize: "0",
               }}
               className={"generated-image"}
             />
@@ -90,9 +95,13 @@ export default function DisplayBunkerResults({
               return (
                 <div
                   key={index}
-                  className="store-item bounce"
-                  style={{ animationDelay: `${index * 0.1}s` }}
+                  className="store-item bounce "
+                  style={{ animationDelay: `${index * 0.3}s` }}
                 >
+                  <div
+                    className="holographic"
+                    style={{ animationDelay: `${index * 0.3}s` }}
+                  ></div>
                   <img
                     src={newURL || "/assets/img/gray_placeholder.png"}
                     className="store-item-image"
