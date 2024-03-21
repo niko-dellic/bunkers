@@ -24,8 +24,25 @@ function sketch(updateBounds, width, height) {
     let maxY = -Infinity;
 
     p.setup = () => {
-      p.createCanvas(width, height);
+      let canvas = p.createCanvas(width, height);
       p.background(255, 0, 0, 0); // Transparent background
+
+      function preventDefaultIfCanvas(e) {
+        if (e.target === canvas.elt) {
+          e.preventDefault();
+        }
+      }
+
+      // Add event listeners for touch events
+      canvas.elt.addEventListener("touchstart", preventDefaultIfCanvas, {
+        passive: false,
+      });
+      canvas.elt.addEventListener("touchmove", preventDefaultIfCanvas, {
+        passive: false,
+      });
+      canvas.elt.addEventListener("touchend", preventDefaultIfCanvas, {
+        passive: false,
+      });
     };
 
     p.draw = () => {
