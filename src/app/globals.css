@@ -97,6 +97,13 @@ main {
   grid-template-columns: 1fr;
 }
 
+#main-mobile.locked {
+  height: 100vh;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+}
+
 .border-effect {
   border: 10px solid #c0c0c0;
 }
@@ -201,10 +208,8 @@ a {
 }
 
 #canvas-wrapper.mobile {
-  height: 75vh;
+  height: 50vh;
 }
-
-
 
 .react-p5-wrapper {
   cursor: crosshair;

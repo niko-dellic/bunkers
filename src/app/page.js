@@ -93,7 +93,10 @@ export default function Home() {
             sizes="<generated>"
           />
         </Head>
-        <main id={isMobile ? "main-mobile" : ""}>
+        <main
+          id={isMobile ? "main-mobile" : ""}
+          className={isMobile && showCanvas ? "locked" : ""}
+        >
           <div className="border-effect">
             <UX
               isMobile={isMobile}
